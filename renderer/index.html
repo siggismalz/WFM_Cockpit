@@ -15,7 +15,7 @@
   <!-- Navbar -->
   <nav class="navbar bg-body-tertiary">
     <div class="container-fluid d-flex align-items-center justify-content-between">
-      <span class="navbar-brand ms-3">WFM Cockpit</span>
+      <span onclick="tool_cards_laden();" class="navbar-brand ms-3" style="cursor: pointer;">WFM Cockpit</span>
       <div class="d-flex align-items-center">
         <button class="btn-sm btn-outline-dark rounded-circle me-2">
           <i class="bi bi-person-fill fs-6"></i>
@@ -42,6 +42,10 @@
     <button class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
       <i class="bi bi-envelope-fill"></i>
     </button>
+
+    <button id="btn_open_modal" class="btn d-block fs-4 mb-1 w-100" style="margin-top: 26rem;" data-bs-toggle="modal" data-bs-target="#toolModal">
+      <i class="bi bi-gear-fill"></i>
+    </button>
   </div>
 
   <!-- Hauptbereich mit 5x4 Cards -->
@@ -51,6 +55,58 @@
 
     </div>
 
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="toolModal" tabindex="-1" aria-labelledby="toolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="toolForm" novalidate>
+          <div class="modal-header">
+            <h5 class="modal-title" id="toolModalLabel">Neues Tool hinzufügen</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+          </div>
+          <div class="modal-body">
+
+            <!-- Toolname -->
+            <div class="mb-3">
+              <label for="toolname" class="form-label">Toolname</label>
+              <input type="text" class="form-control" id="toolname" name="toolname" maxlength="50" required>
+              <div class="invalid-feedback">Bitte einen Toolnamen (max. 50 Zeichen) eingeben.</div>
+            </div>
+
+            <!-- Toolbeschreibung (textarea) -->
+            <div class="mb-3">
+              <label for="toolbeschreibung" class="form-label">Toolbeschreibung</label>
+              <textarea class="form-control" id="toolbeschreibung" name="toolbeschreibung" maxlength="50" required></textarea>
+              <div class="invalid-feedback">Bitte eine Beschreibung (max. 50 Zeichen) eingeben.</div>
+            </div>
+
+            <!-- Toolpfad -->
+            <div class="mb-3">
+              <label for="toolpfad" class="form-label">Toolpfad</label>
+              <input type="text" class="form-control" id="toolpfad" name="toolpfad" maxlength="250" required>
+              <div class="invalid-feedback">Bitte einen Pfad (max. 250 Zeichen) angeben.</div>
+            </div>
+
+            <!-- Toolart -->
+            <div class="mb-3">
+              <label for="toolart" class="form-label">Toolart</label>
+              <input type="text" class="form-control" id="toolart" name="toolart" maxlength="50" required>
+              <div class="invalid-feedback">Bitte die Toolart angeben (max. 50 Zeichen).</div>
+            </div>
+
+            <!-- Platz für Fehlermeldung vom Backend -->
+            <div id="toolFormError" class="alert alert-danger d-none" role="alert"></div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+            <button type="submit" class="btn btn-primary">Speichern</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script src="index.js"></script>

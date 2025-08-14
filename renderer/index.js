@@ -3,6 +3,51 @@ document.addEventListener("DOMContentLoaded", () => {
   [...tooltipliste].forEach(el => new bootstrap.Tooltip(el));
   username_holen();
   tool_cards_laden();
+
+  const form = document.getElementById("toolForm");
+  const modalEl = document.getElementById("toolModal");
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  const errorBox = document.getElementById("toolFormError");
+
+  // Modal resetten, wenn es geschlossen wird
+  modalEl.addEventListener("hidden.bs.modal", () => {
+    form.reset();
+    form.classList.remove("was-validated");
+    errorBox.classList.add("d-none");
+    errorBox.textContent = "";
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    form.classList.add("was-validated");
+    errorBox.classList.add("d-none");
+
+    if (!form.checkValidity()) return;
+
+    const daten = {
+      toolname: document.getElementById("toolname").value.trim(),
+      toolbeschreibung: document.getElementById("toolbeschreibung").value.trim(),
+      toolpfad: document.getElementById("toolpfad").value.trim(),
+      toolart: document.getElementById("toolart").value.trim()
+    };
+
+    try {
+      if (window.electron?.tool_speichern) {
+        const res = await window.electron.tool_speichern(daten);
+        if (res?.ok) {
+          modal.hide();
+          tool_cards_laden();
+          return;
+        }
+        throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
+      } else {
+        modal.hide();
+      }
+    } catch (err) {
+      errorBox.textContent = err.message || String(err);
+      errorBox.classList.remove("d-none");
+    }
+  });
 });
 
 document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {

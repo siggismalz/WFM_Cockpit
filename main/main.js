@@ -69,6 +69,28 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
 
 });
 
+ipcMain.handle("tool_speichern", async (_evt, t) => {
+  try {
+    // Serverseitig minimal validieren
+    const { toolname, toolbeschreibung, toolpfad, toolart } = t || {};
+    if (![toolname, toolbeschreibung, toolpfad, toolart].every(v => typeof v === "string" && v.trim())) {
+      throw new Error("Bitte alle Pflichtfelder ausfüllen.");
+    }
+    if (toolname.length > 50 || toolbeschreibung.length > 50 || toolart.length > 50 || toolpfad.length > 250) {
+      throw new Error("Ein Feld überschreitet die maximale Länge.");
+    }
+
+    await verbindung.query(
+      "INSERT INTO T_WFM_Cockpit (toolname, toolbeschreibung, toolpfad, toolart) VALUES (?,?,?,?)",
+      [toolname, toolbeschreibung, toolpfad, toolart]
+    );
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err.message || String(err) };
+  }
+});
+
 
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
