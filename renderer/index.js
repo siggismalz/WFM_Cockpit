@@ -11,8 +11,8 @@ document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
   tool_cards_laden("gh_dispo");
 });
 
-function tool_offnen(toolpfad) {
-  alert(toolpfad)
+function tool_offnen(id) {
+  window.electron.tool_oeffnen(id);
 };
 
 async function username_holen(){

@@ -3,6 +3,7 @@ const {app,BrowserWindow,ipcMain,dialog} = require("electron");
 const path = require("path");
 const os = require("os");
 const odbc = require("odbc");
+const { shell } = require("electron");
 
 let verbindung;
 
@@ -37,8 +38,6 @@ ipcMain.handle("tools_laden", async (event,filter) => {
       where_filter = ` Bereich = '${filter}'` 
     };
 
-    console.log(where_filter)
-
     const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`
     const daten = await verbindung.query(sql_string);
 
@@ -53,7 +52,26 @@ ipcMain.handle("tools_laden", async (event,filter) => {
         buttons: ['OK']
       });
       throw err;
+  }
+});
 
+ipcMain.handle("tool_oeffnen", async (event, id) => {
+  try {
+    const { rows } = await verbindung.query(
+      "SELECT toolpfad FROM T_WFM_Cockpit WHERE id = ?",
+      [Number(id)]
+    );
+
+    if (!rows.length) throw new Error("Kein Toolpfad gefunden");
+
+    await shell.openPath(rows[0].toolpfad);
+  } catch (err) {
+    dialog.showMessageBox(mainwindow, {
+      type: "error",
+      title: "Tool konnte nicht geöffnet werden",
+      message: "Fehler beim Öffnen des Tools:\n" + err,
+      buttons: ["OK"]
+    });
   }
 });
 
