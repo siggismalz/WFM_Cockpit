@@ -61,8 +61,12 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
   
   if (pfad !== ""){
     let zielpfad = path.join(os.homedir(),path.basename(pfad));
-    fs.copyFileSync(pfad,zielpfad)
-    shell.openPath(zielpfad);
+    try{
+      fs.copyFileSync(pfad,zielpfad)
+      shell.openPath(zielpfad);} 
+    catch(err){
+        throw err;
+    }
   } else {
     console.log("Kein Pfad gefunden")
   }
