@@ -68,10 +68,10 @@
     <div class="container-fluid d-flex align-items-center justify-content-between">
       <span class="navbar-brand ms-3">WFM Cockpit</span>
       <div class="d-flex align-items-center">
-        <button class="btn btn-outline-dark rounded-circle me-2">
-          <i class="bi bi-person-fill"></i>
+        <button class="btn-sm btn-outline-dark rounded-circle me-2">
+          <i class="bi bi-person-fill fs-6"></i>
         </button>
-        <span class="text-black">Vorname Nachname</span>
+        <span id="username" class="text-black">Vorname Nachname</span>
       </div>
     </div>
   </nav>
@@ -99,6 +99,7 @@
   <div class="main-content">
 
     <div class="card-grid">
+
       <div class="card">
         <div class="card-body" style="height: 120px; overflow-y: auto;">
           <h5 class="card-title text-black mt-1">Bestelländerungstool</h5>
@@ -108,20 +109,26 @@
           <button class="btn border-0" onclick="tool_offnen('uihiuhiuh')">Öffnen</button>
         </div>
       </div>
-    </div>
 
     </div>
+
   </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const tooltipliste = document.querySelectorAll('[data-bs-toggle="tooltip"]');
       [...tooltipliste].forEach(el => new bootstrap.Tooltip(el));
+      username_holen();
     });
 
     function tool_offnen(toolpfad) {
       alert(toolpfad)
     };
+
+    async function username_holen(){
+      let username = await window.electron.username();
+      document.getElementById("username").innerText = username;
+    }
   </script>
 </body>
 </html>
