@@ -4,6 +4,7 @@ const path = require("path");
 const os = require("os");
 const odbc = require("odbc");
 
+let verbindung;
 
 // Windows
 let mainwindow;
@@ -28,21 +29,19 @@ ipcMain.handle("username",() => {
   return username;
 });
 
-ipcMain.handle("tools_laden", async (filter) => {
+ipcMain.handle("tools_laden", async (event,filter) => {
   try {
     
     let where_filter = " 1 = 1";
-    if(!filter.length === 0){
+    if(filter && filter.trim() !== ""){
       where_filter = ` Bereich = '${filter}'` 
     };
-    
-    const verbindungszeichenfolge = "DRIVER=SQL Server;SERVER=SERVER;DATABASE=Testdata;trusted_connection=yes";
-    const verbindung = await odbc.connect(verbindungszeichenfolge);
+
+    console.log(where_filter)
 
     const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`
     const daten = await verbindung.query(sql_string);
 
-    await verbindung.close();
     return daten;
 
     } catch (err) {
@@ -54,15 +53,25 @@ ipcMain.handle("tools_laden", async (filter) => {
         buttons: ['OK']
       });
       throw err;
-      
+
   }
 });
 
+async function datenbank_verbindung() {
+  const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
+  verbindung = await odbc.connect(verbindungszeichenfolge);
+}
+
 // App-Ereignisse
-app.on("ready", () => {
+app.on("ready",async () => {
   mainwindow_erstellen();
+  await datenbank_verbindung();
 });
 
 app.on("quit",() => {
   app.quit();
+});
+
+app.on("before-quit",async () => {
+  if (verbindung) await verbindung.close();
 });

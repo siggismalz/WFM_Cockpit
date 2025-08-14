@@ -2,7 +2,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tooltipliste = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   [...tooltipliste].forEach(el => new bootstrap.Tooltip(el));
   username_holen();
-tool_cards_laden();
+  tool_cards_laden();
+});
+
+document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  tool_cards_laden("gh_dispo");
 });
 
 function tool_offnen(toolpfad) {
@@ -14,8 +20,8 @@ async function username_holen(){
   document.getElementById("username").innerText = username;
 };
 
-async function tool_cards_laden(){
-  let daten = await window.electron.tools_laden();
+async function tool_cards_laden(filter){
+  let daten = await window.electron.tools_laden(filter);
   if (daten.length === 0) return; 
 
   const grid = document.querySelector(".card-grid");
