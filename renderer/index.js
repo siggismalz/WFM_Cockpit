@@ -74,7 +74,7 @@ async function tool_cards_laden(filter){
 
   daten.forEach(tool => {
     grid.innerHTML += `
-      <div class="card">
+      <div class="card shadow">
         <div class="card-body" style="height: 120px; overflow-y: auto;">
           <h5 class="card-title text-black mt-1">${tool.toolname}</h5>
           <p class="card-text mt-3">${tool.toolbeschreibung}</p>
@@ -85,5 +85,4 @@ async function tool_cards_laden(filter){
       </div>
     `
   });
-
 };
