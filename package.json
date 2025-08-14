@@ -1,0 +1,16 @@
+{
+  "name": "wfm_cockpit",
+  "version": "2.0.0",
+  "description": "Software zur verwaltung der benutzerdefinierten Tools des Warenflussmanegements der EDEKA Südwest",
+  "license": "MIT",
+  "author": "Leon Stolz",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^37.2.6",
+    "odbc": "^2.4.9"
+  }
+}
