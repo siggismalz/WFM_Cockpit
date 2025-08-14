@@ -67,13 +67,13 @@ async function username_holen(){
 
 async function tool_cards_laden(filter){
   let daten = await window.electron.tools_laden(filter);
-  if (daten.length === 0) return; 
+  if (!Array.isArray(daten) || daten.length === 0) return;
 
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
 
-  daten.forEach(tool => {
-    grid.innerHTML += `
+  daten.forEach((tool, index) => {
+    const cardHTML = `
       <div class="card shadow">
         <div class="card-body" style="height: 120px; overflow-y: auto;">
           <h5 class="card-title text-black mt-1">${tool.toolname}</h5>
@@ -83,6 +83,22 @@ async function tool_cards_laden(filter){
           <button class="btn border-0" onclick="tool_offnen('${tool.id}')">Öffnen</button>
         </div>
       </div>
-    `
+    `;
+
+    setTimeout(() => {
+      // Robust einfügen und Element referenzieren
+      const tpl = document.createElement("template");
+      tpl.innerHTML = cardHTML.trim();
+      const el = tpl.content.firstElementChild;
+
+      // Einmalige Entry-Animation aktivieren
+      el.classList.add("appear");
+      grid.appendChild(el);
+
+      // Nach Ende der Animation Klasse entfernen -> Hover funktioniert
+      el.addEventListener("animationend", () => {
+        el.classList.remove("appear");
+      }, { once: true });
+    }, index * 100); // Staffelung (optional)
   });
-};
+}
