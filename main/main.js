@@ -28,17 +28,25 @@ ipcMain.handle("username",() => {
   return username;
 });
 
-ipcMain.handle("tools_laden", async () => {
+ipcMain.handle("tools_laden", async (filter) => {
   try {
-    const verbindungszeichenfolge = 
-      "DRIVER=SQL Server;SERVER=SERVER;DATABASE=Testdat;trusted_connection=yes";
-
+    
+    let where_filter = " 1 = 1";
+    if(!filter.length === 0){
+      where_filter = ` Bereich = '${filter}'` 
+    };
+    
+    const verbindungszeichenfolge = "DRIVER=SQL Server;SERVER=SERVER;DATABASE=Testdata;trusted_connection=yes";
     const verbindung = await odbc.connect(verbindungszeichenfolge);
 
-    const daten = await verbindung.query("SELECT * FROM T_WFM_Cockpit");
+    const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`
+    const daten = await verbindung.query(sql_string);
+
     await verbindung.close();
     return daten;
+
     } catch (err) {
+
       dialog.showMessageBox(mainwindow,{
         type: "error",
         title: "Fehler beim verbinden zur Datenbank",
@@ -46,6 +54,7 @@ ipcMain.handle("tools_laden", async () => {
         buttons: ['OK']
       });
       throw err;
+      
   }
 });
 
