@@ -1,9 +1,9 @@
 // Importe
-const {app,BrowserWindow,ipcMain,dialog} = require("electron");
+const {app,BrowserWindow,ipcMain,dialog,shell} = require("electron");
 const path = require("path");
 const os = require("os");
 const odbc = require("odbc");
-const { shell } = require("electron");
+const fs = require("fs");
 
 let verbindung;
 
@@ -56,24 +56,19 @@ ipcMain.handle("tools_laden", async (event,filter) => {
 });
 
 ipcMain.handle("tool_oeffnen", async (event, id) => {
-  try {
-    const { rows } = await verbindung.query(
-      "SELECT toolpfad FROM T_WFM_Cockpit WHERE id = ?",
-      [Number(id)]
-    );
-
-    if (!rows.length) throw new Error("Kein Toolpfad gefunden");
-
-    await shell.openPath(rows[0].toolpfad);
-  } catch (err) {
-    dialog.showMessageBox(mainwindow, {
-      type: "error",
-      title: "Tool konnte nicht geöffnet werden",
-      message: "Fehler beim Öffnen des Tools:\n" + err,
-      buttons: ["OK"]
-    });
+  let daten = await verbindung.query(`Select toolpfad from T_WFM_Cockpit where id =${id}`);
+  pfad = daten[0].toolpfad
+  
+  if (pfad !== ""){
+    let zielpfad = path.join(os.homedir(),path.basename(pfad));
+    fs.copyFileSync(pfad,zielpfad)
+    shell.openPath(zielpfad);
+  } else {
+    console.log("Kein Pfad gefunden")
   }
+
 });
+
 
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
