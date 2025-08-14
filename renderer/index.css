@@ -1,0 +1,49 @@
+/* Fixe Navbar */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1030;
+}
+
+/* Fixe Sidebar */
+.sidebar {
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  width: 5rem;
+  background-color: var(--bs-tertiary-bg);
+  padding: 0.5rem;
+  border-right: 1px solid var(--bs-border-color);
+  overflow-y: auto;
+}
+
+/* Scrollbarer Hauptbereich */
+.main-content {
+  position: absolute;
+  top: 56px;
+  left: 5rem;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+/* 5-Spalten-Grid für Cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* 4 Zeilen gleicher Höhe (z. B. 180px) */
+.card-grid .card {
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inhalt sauber kürzen, damit nichts überläuft */
+.card-body {
+  overflow: hidden;
+}
