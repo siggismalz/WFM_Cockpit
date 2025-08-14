@@ -2,6 +2,7 @@
 const {app,BrowserWindow,IPCMain, ipcMain} = require("electron");
 const path = require("path");
 const os = require("os");
+const odbc = require("odbc");
 
 
 // Windows
@@ -25,6 +26,30 @@ const mainwindow_erstellen = () => {
 ipcMain.handle("username",() => {
   let username = os.userInfo().username;
   return username;
+});
+
+ipcMain.handle("tools_laden", async () => {
+  try {
+    const verbindungszeichenfolge = 
+      "DRIVER=SQL Server;SERVER=SERVER;DATABASE=Testdata;trusted_connection=yes";
+
+    // Verbindung öffnen (ohne Callback)
+    const verbindung = await odbc.connect(verbindungszeichenfolge);
+    console.log("Erfolg beim Herstellen der Verbindung");
+
+    // Abfrage ausführen
+    const daten = await verbindung.query("SELECT * FROM T_WFM_Cockpit");
+
+    // Verbindung schließen
+    await verbindung.close();
+
+    // Daten zurückgeben
+    return daten;
+
+  } catch (err) {
+    console.error("Fehler:", err);
+    throw err;
+  }
 });
 
 // App-Ereignisse
