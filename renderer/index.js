@@ -99,16 +99,17 @@ async function tool_cards_laden(filter){
   daten.forEach((tool, index) => {
   const cardHTML = `
     <div class="card shadow">
-      <div class="card-body" style="height: 100px; overflow: hidden;">
+      <div class="card-body" style="height: 100px; overflow: hidden; cursor: pointer;">
         <h6 class="card-title text-black mt-1">${tool.toolname}</h6>
-        <p class="card-text text-muted mt-3" style="font-size: 13px;">${tool.toolbeschreibung}</p>
+        <p class="card-text text-muted mt-1" style="font-size: 13px;">${tool.toolbeschreibung}</p>
       </div>
       <div class="container-fluid ms-0 ps-0 mt-4 card-footer bg-body">
-        <button class="btn border-0" onclick="tool_offnen('${tool.id}')">Öffnen</button>
+        <button class="btn border-0" onclick="tool_offnen('${tool.id}')">
+          <i class="bi bi-arrow-up-right-circle-fill"></i>
+        </button>
       </div>
     </div>
   `;
-
 
     setTimeout(() => {
       // Robust einfügen und Element referenzieren

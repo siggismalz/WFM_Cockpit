@@ -42,7 +42,7 @@ body{
 
 /* 4 Zeilen gleicher Höhe (z. B. 180px) */
 .card-grid .card {
-  height: 180px;
+  height: 150px;
   display: flex;
   flex-direction: column;
 }
