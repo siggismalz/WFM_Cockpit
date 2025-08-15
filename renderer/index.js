@@ -56,6 +56,30 @@ document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
   tool_cards_laden("gh_dispo");
 });
 
+document.getElementById("btn_sonderprozesse").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  tool_cards_laden("sonderprozesse");
+});
+
+document.getElementById("btn_organisation").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  tool_cards_laden("organisation");
+});
+
+document.getElementById("btn_Auswertungen").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  tool_cards_laden("auswertungen");
+});
+
+document.getElementById("btn_mail").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  tool_cards_laden("mailing");
+});
+
 function tool_offnen(id) {
   window.electron.tool_oeffnen(id);
 };

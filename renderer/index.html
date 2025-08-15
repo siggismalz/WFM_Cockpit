@@ -30,16 +30,16 @@
     <button id="btn_gh_dispo_tools" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Aufgabenliste GH-Dispo">
       <i class="bi bi-list-task"></i>
     </button>
-    <button class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Sonderprozesse">
+    <button id="btn_sonderprozesse" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Sonderprozesse">
       <i class="bi bi-stars"></i>
     </button>
-    <button class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Organisation">
+    <button id="btn_organisation" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Organisation">
       <i class="bi bi-people-fill"></i>
     </button>
-    <button class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Auswertungen">
+    <button id="btn_Auswertungen" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Auswertungen">
       <i class="bi bi-file-bar-graph-fill"></i>
     </button>
-    <button class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
+    <button id="btn_mail" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
       <i class="bi bi-envelope-fill"></i>
     </button>
 
@@ -92,11 +92,21 @@
             </div>
 
             <!-- Toolart -->
-            <div class="mb-3">
-              <label for="toolart" class="form-label">Toolart</label>
-              <input type="text" class="form-control" id="toolart" name="toolart" maxlength="50" required>
-              <div class="invalid-feedback">Bitte die Toolart angeben (max. 50 Zeichen).</div>
-            </div>
+              <div class="mb-3">
+                <label for="toolart" class="form-label">Toolart</label>
+                <input list="toolart-options" class="form-control" id="toolart" name="toolart" maxlength="50" required>
+                <datalist id="toolart-options">
+                  <option value="GH_Dispo">
+                  <option value="Sonderprozesse">
+                  <option value="Organisation">
+                  <option value="Auswertungen">
+                  <option value="Mailing">
+                </datalist>
+                <div class="invalid-feedback">
+                  Bitte die Toolart angeben (max. 50 Zeichen).
+                </div>
+              </div>
+
 
             <!-- Platz für Fehlermeldung vom Backend -->
             <div id="toolFormError" class="alert alert-danger d-none" role="alert"></div>
