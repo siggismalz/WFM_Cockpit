@@ -80,6 +80,13 @@ document.getElementById("btn_mail").addEventListener("click",() => {
   tool_cards_laden("Mailing");
 });
 
+document.getElementById("btn_suche").addEventListener("click",() => {
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+  const filter = document.getElementById("T_suche").value;
+  tools_dursuchen(filter)
+});
+
 function tool_offnen(id) {
   window.electron.tool_oeffnen(id);
 };
@@ -115,9 +122,50 @@ const cardHTML = `
     </div>
   </div>
 `;
+    setTimeout(() => {
+      // Robust einfügen und Element referenzieren
+      const tpl = document.createElement("template");
+      tpl.innerHTML = cardHTML.trim();
+      const el = tpl.content.firstElementChild;
 
+      // Einmalige Entry-Animation aktivieren
+      el.classList.add("appear");
+      grid.appendChild(el);
 
+      // Nach Ende der Animation Klasse entfernen -> Hover funktioniert
+      el.addEventListener("animationend", () => {
+        el.classList.remove("appear");
+      }, { once: true });
+    }, index * 100); // Staffelung (optional)
+  });
+};
 
+async function tools_dursuchen(filter){
+  let daten = await window.electron.tools_dursuchen(filter);
+  if (!Array.isArray(daten) || daten.length === 0) return;
+
+  const grid = document.querySelector(".card-grid");
+  grid.innerHTML = "";
+
+  daten.forEach((tool, index) => {
+const cardHTML = `
+  <div class="card tool-card shadow-sm appear" onclick="tool_offnen('${tool.id}')">
+    <div class="tool-accent"></div>
+    <div class="card-body">
+      <h6 class="tool-title mb-1">${tool.toolname}</h6>
+      <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
+    </div>
+
+    <div class="card-footer bg-transparent">
+      <div class="tool-meta text-muted small"></div>
+      <button class="btn btn-light tool-open-btn" 
+              onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
+              aria-label="Öffnen">
+        <i class="bi bi-arrow-up-right"></i>
+      </button>
+    </div>
+  </div>
+`;
     setTimeout(() => {
       // Robust einfügen und Element referenzieren
       const tpl = document.createElement("template");
@@ -135,3 +183,4 @@ const cardHTML = `
     }, index * 100); // Staffelung (optional)
   });
 }
+

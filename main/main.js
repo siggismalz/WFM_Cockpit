@@ -55,6 +55,27 @@ ipcMain.handle("tools_laden", async (event,filter) => {
   }
 });
 
+ipcMain.handle("tools_dursuchen", async (event,filter) => {
+  try {
+    const sql_string = `
+    Select * from T_WFM_Cockpit 
+    where  toolname like '%${filter}%' 
+    or toolbeschreibung like '%${filter}%' 
+    or toolart like '%${filter}%'`;
+
+    const daten = await verbindung.query(sql_string);
+    return daten;
+  } catch(err){
+      dialog.showMessageBox(mainwindow,{
+        type: "error",
+        title: "Fehler beim verbinden zur Datenbank",
+        message: "Datenbankverbindung konnte nicht hergestellt werden.\n" + err,
+        buttons: ['OK']
+      });
+      throw err;
+  };
+});
+
 ipcMain.handle("tool_oeffnen", async (event, id) => {
   let daten = await verbindung.query(`Select toolpfad from T_WFM_Cockpit where id =${id}`);
   pfad = daten[0].toolpfad
