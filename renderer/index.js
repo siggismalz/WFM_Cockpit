@@ -99,7 +99,7 @@ async function tool_cards_laden(filter){
   daten.forEach((tool, index) => {
   const cardHTML = `
     <div class="card shadow">
-      <div class="card-body" style="height: 120px; overflow: hidden;">
+      <div class="card-body" style="height: 100px; overflow: hidden;">
         <h6 class="card-title text-black mt-1">${tool.toolname}</h6>
         <p class="card-text text-muted mt-3" style="font-size: 13px;">${tool.toolbeschreibung}</p>
       </div>
