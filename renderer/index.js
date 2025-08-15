@@ -53,31 +53,31 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
-  tool_cards_laden("gh_dispo");
+  tool_cards_laden("GH_Dispo");
 });
 
 document.getElementById("btn_sonderprozesse").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
-  tool_cards_laden("sonderprozesse");
+  tool_cards_laden("Sonderprozesse");
 });
 
 document.getElementById("btn_organisation").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
-  tool_cards_laden("organisation");
+  tool_cards_laden("Organisation");
 });
 
 document.getElementById("btn_Auswertungen").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
-  tool_cards_laden("auswertungen");
+  tool_cards_laden("Auswertungen");
 });
 
 document.getElementById("btn_mail").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
-  tool_cards_laden("mailing");
+  tool_cards_laden("Mailing");
 });
 
 function tool_offnen(id) {

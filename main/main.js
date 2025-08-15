@@ -35,7 +35,7 @@ ipcMain.handle("tools_laden", async (event,filter) => {
     
     let where_filter = " 1 = 1";
     if(filter && filter.trim() !== ""){
-      where_filter = ` Bereich = '${filter}'` 
+      where_filter = ` toolart = '${filter}'` 
     };
 
     const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`
