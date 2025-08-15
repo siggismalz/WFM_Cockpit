@@ -76,7 +76,7 @@ async function tool_cards_laden(filter){
     const cardHTML = `
       <div class="card shadow">
         <div class="card-body" style="height: 120px; overflow-y: auto;">
-          <h5 class="card-title text-black mt-1">${tool.toolname}</h5>
+          <h6 class="card-title text-black mt-1">${tool.toolname}</h6>
           <p class="card-text mt-3">${tool.toolbeschreibung}</p>
         </div>
         <div class="container-fluid ms-0 ps-0 mt-4 card-footer bg-body">
