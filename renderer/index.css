@@ -1,77 +1,128 @@
-body{
-  background-color: whitesmoke;
-}
+/* ===== Base ===== */
+body { background: whitesmoke; }
 
-/* Fixe Navbar */
+/* ===== Layout: Navbar / Sidebar / Main ===== */
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1030;
 }
 
-/* Fixe Sidebar */
 .sidebar {
   position: fixed;
-  top: 56px;
-  bottom: 0;
+  top: 56px; bottom: 0;
   width: 5rem;
-  background-color: var(--bs-tertiary-bg);
-  padding: 0.5rem;
+  background: var(--bs-tertiary-bg);
+  padding: .5rem;
   border-right: 1px solid var(--bs-border-color);
   overflow-y: auto;
 }
 
-/* Scrollbarer Hauptbereich */
 .main-content {
   position: absolute;
-  top: 56px;
-  left: 5rem;
-  right: 0;
-  bottom: 0;
+  top: 56px; left: 5rem; right: 0; bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 1rem;
 }
 
-/* 5-Spalten-Grid für Cards */
+/* ===== Grid ===== */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
-/* 4 Zeilen gleicher Höhe (z. B. 180px) */
-.card-grid .card {
-  height: 150px;
+/* ===== Cards ===== */
+.tool-card {
+  position: relative;
   display: flex;
   flex-direction: column;
+  height: 150px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
-/* Inhalt sauber kürzen, damit nichts überläuft */
-.card-body {
+.tool-card .card-body {
+  padding: 16px 16px 10px;
   overflow: hidden;
 }
 
-.card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.tool-card .card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 14px;
+  border-top: 0;
+  background: transparent;
 }
 
+/* Akzent-Leiste */
+.tool-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--bs-primary), #6ea8fe 60%, #20c997);
+  opacity: .9;
+}
 
+/* Typografie */
+.tool-title {
+  color: #111;
+  font-weight: 700;
+  font-size: clamp(15px, 1.2vw, 17px);
+  letter-spacing: .2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-desc {
+  color: var(--bs-secondary-color, #6c757d);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;          /* 2 Zeilen sichtbar */
+  overflow: hidden;
+  min-height: calc(1em * 1.35 * 2);/* gleich hohe Karten */
+}
+
+/* Action-Button */
+.tool-open-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.tool-open-btn i { font-size: 1rem; }
+
+/* Hover/Focus */
+.tool-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 10px 26px rgba(0,0,0,.12);
+}
+.tool-card:hover .tool-desc { -webkit-line-clamp: 4; }
+.tool-open-btn:hover { transform: translateY(-1px); }
+
+/* Appear Animation (einmalig definiert) */
 @keyframes fadeInUp {
-  to {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  60% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-3px) scale(1.01); /* leichter Overshoot */
+  }
+  100% {
+    transform: translateY(0) scale(1);
   }
 }
 
-/* Hover-Effekt */
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.card.appear {
-  opacity: 0;
-  transform: translateY(15px);
-  animation: fadeInUp 0.4s ease forwards;
+.appear {
+  animation: fadeInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  will-change: transform, opacity;
 }
