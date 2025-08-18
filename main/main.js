@@ -198,6 +198,24 @@ ipcMain.handle("sap_verbindung_testen",async () => {
   return erfolg;
 });
 
+ipcMain.handle("tool_loeschen", async (event, id) => {
+  try {
+    const user = os.userInfo().username.toLowerCase();
+    const developer = ["leon.stolz","max.wandt","roman.ensel","jasmin.huber"]
+    if (developer.includes(user)) {
+      await verbindung.query(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`);
+      console.log(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`)
+      return { success: true, message: "erfolgreich gelöscht" };
+    } else {
+      return {success: false, message: "Keine Berechtigung"}
+    }
+
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+});
+
+
 // *************************** //
 // Allgemeine  Hilfsfunktionen //
 // --------------------------- //
@@ -242,12 +260,12 @@ async function sap_verbindung() {
 // Event beim starten der APP
 app.on("ready",async () => {
   await datenbank_verbindung();
-  splashscreen_erstellen();
-  setTimeout(() => {
-    splashscreen.close();
-    mainwindow_erstellen();
-  },4000);
-
+  //splashscreen_erstellen();
+  //setTimeout(() => {
+  //  splashscreen.close();
+  //  mainwindow_erstellen();
+  //},4000);
+mainwindow_erstellen();
 });
 
 // Event beim beenden der APP

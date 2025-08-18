@@ -431,9 +431,11 @@ Toast.fire({
 
             if (window.electron?.tool_loeschen) {
               const ok = await window.electron.tool_loeschen(toolId);
-              if (ok) {
+              if (ok.success === true) {
                 await tool_cards_laden();
                 await Swal.fire({ toast:true, position:'bottom-end', timer:2000, showConfirmButton:false, icon:'success', title:'Gelöscht' });
+              } else {
+                await Swal.fire({ toast:true, position:'bottom-end', timer:2000, showConfirmButton:false, icon:'error', title:'Keine Berechtigung' });
               }
             } else {
               console.log('[delete]', toolId);
