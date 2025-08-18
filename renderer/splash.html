@@ -1,11 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WFM-Cockpit – Splash</title>
+
+  <!-- Bootstrap (nur CSS, für den Spinner & Utilities) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#cfd9df; --bg2:#e2ebf0; --bg3:#ffffff;
+      --card-bg:rgba(255,255,255,.4); --card-brd:rgba(255,255,255,.6);
+      --txt:#1f2937; --muted:#6b7280; --accent1:#5b86e5; --accent2:#36d1dc;
+    }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--txt);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-size: 200% 200%;
+      animation: bgshift 16s ease-in-out infinite;
+      display:flex; align-items:center; justify-content:center;
+      text-align:center;
+    }
+    @keyframes bgshift{
+      0%,100%{ background-position: 0% 50%; }
+      50%{ background-position: 100% 50%; }
+    }
+
+    .card-glass{
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: var(--card-bg);
+      border:1px solid var(--card-brd);
+      border-radius: 1.25rem;
+      box-shadow: 0 16px 36px rgba(0,0,0,.12);
+      padding: 2rem 2.25rem;
+      max-width: 420px; width: 92%;
+    }
+
+    .title{
+      font-weight: 700;
+      letter-spacing:.3px;
+      margin-bottom:.5rem;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent;
+    }
+
+    .accent{
+      height:4px; width:84px; margin:.25rem auto 1.25rem;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      opacity:.85;
+    }
+
+    .loading-text{ color:var(--muted); margin-top: .9rem; font-size:.95rem; }
+
+    /* Animierte Punkte … */
+    .dots span{ display:inline-block; animation: blink 1.4s infinite; }
+    .dots span:nth-child(2){ animation-delay: .2s; }
+    .dots span:nth-child(3){ animation-delay: .4s; }
+    @keyframes blink{
+      0%, 20% { opacity: 0; transform: translateY(0); }
+      50% { opacity: 1; transform: translateY(-1px); }
+      100% { opacity: 0; transform: translateY(0); }
+    }
+
+    /* Bewegung reduzieren respektieren */
+    @media (prefers-reduced-motion: reduce){
+      body{ animation: none; }
+      .dots span{ animation: none; opacity:1; }
+    }
+  </style>
 </head>
 <body>
-  
+  <section class="card-glass">
+    <h1 class="h4 title">WFM-Cockpit</h1>
+    <div class="accent"></div>
+
+    <div class="d-flex flex-column align-items-center">
+      <div class="spinner-border" role="status" aria-label="Lädt"></div>
+      <div class="loading-text">
+        Lädt<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+      </div>
+    </div>
+  </section>
 </body>
 </html>
