@@ -155,6 +155,8 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
     if (toolname.length > 50 || toolbeschreibung.length > 50 || toolart.length > 50 || toolpfad.length > 250) {
       throw new Error("Ein Feld überschreitet die maximale Länge.");
     }
+    const user = os.userInfo().username.toLowerCase();
+    
 
     await verbindung.query(
       "INSERT INTO T_WFM_Cockpit (toolname, toolbeschreibung, toolpfad, toolart) VALUES (?,?,?,?)",

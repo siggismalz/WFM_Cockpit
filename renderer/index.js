@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (window.electron?.tool_speichern) {
-        const res = await window.electron.tool_speichern(daten);
+        const res = await window.electron.tool_speichern(daten); 
         if (res?.ok) {
           modal.hide();
           tool_cards_laden();
@@ -455,3 +455,32 @@ Toast.fire({
     init();
   }
 })();
+
+async function berechtigung_pruefen() {
+  let user = await window.electron.username();
+  user = user.toLowerCase();
+  const developer = ["leons","leon.stolz", "max.wandt", "roman.ensel", "jasmin.huber"];
+
+  if (!developer.includes(user)) {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
+    Toast.fire({
+      icon: "error",
+      title: "Keine Berechtigung für diesen Vorgang"
+    });
+  } else {
+    // Modal nur öffnen, wenn Berechtigung vorhanden
+    const myModal = new bootstrap.Modal(document.getElementById("toolModal"));
+    myModal.show();
+  }
+}
+
