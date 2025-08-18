@@ -150,11 +150,42 @@ ipcMain.handle("abmelden",() => {
   app.quit();
 });
 
+ipcMain.handle("sap_verbindung_testen",async () => {
+  const erfolg = await sap_verbindung();
+  return erfolg;
+});
+
 // Funktionen
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
   verbindung = await odbc.connect(verbindungszeichenfolge);
 }
+
+async function sap_verbindung() {
+  try {
+    const com = new winax.Object("SapROTWr.SAPROTWrapper");
+    const sapguiauto = com.GetROTEntry("SAPGUI");
+    if (!sapguiauto) {
+      return { success: false, message: "SAPGUI nicht gefunden" };
+    }
+    const app = sapguiauto.GetScriptingEngine();
+    const anzahl_verbindungen = app.Children.Count;
+    if (anzahl_verbindungen === 0) {
+      return { success: false, message: "Keine aktive SAP-Verbindung gefunden" };
+    }
+    const sap_verbindung = app.Children.Item(0);
+    const anzahl_children = sap_verbindung.Children.Count();
+    if (anzahl_children === 0) {
+      return { success: false, message: "Keine SAP Session gefunden" };
+    }
+    // Wenn alles ok
+    return { success: true, message: "SAP-Verbindung erfolgreich hergestellt", verbindung: sap_verbindung };
+
+  } catch (err) {
+    return { success: false, message: "Fehler: " + err.message };
+  }
+}
+
 
 
 

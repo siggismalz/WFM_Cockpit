@@ -37,6 +37,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res?.ok) {
           modal.hide();
           tool_cards_laden();
+            const Toast = Swal.mixin({
+            toast: true,
+            position: "bottom-end",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+              toast.onmouseenter = Swal.stopTimer;
+              toast.onmouseleave = Swal.resumeTimer;
+            }
+          });
+          Toast.fire({
+            icon: "success",
+            title: "Tool erfolgreich hinzugefügt"
+          });
           return;
         }
         throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
@@ -227,4 +242,44 @@ Toast.fire({
   await wait(4000);
 
   window.electron.abmelden();
+};
+
+async function sap_verbindung_test(){
+  const ergebnis = window.electron.sap_verbindung_testen();
+
+  if (ergebnis.success) {
+  const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+Toast.fire({
+  icon: "success",
+  title: "SAP-Verbindung erfolgreich hergestellt"
+});
+  
+
+} else {
+  const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+Toast.fire({
+  icon: "danger",
+  title: "Keine Verbindung zu SAP möglich"
+});
+  }
 };

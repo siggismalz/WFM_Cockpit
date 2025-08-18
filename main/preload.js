@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld("electron",{
   tool_speichern: (tool) => ipcRenderer.invoke("tool_speichern", tool),
   tools_dursuchen: (filter) => ipcRenderer.invoke("tools_dursuchen",filter),
   tools_ordner_leeren: () => ipcRenderer.invoke("tools_ordner_leeren"),
-  abmelden: () => ipcRenderer.invoke("abmelden")
+  abmelden: () => ipcRenderer.invoke("abmelden"),
+  sap_verbindung_testen: () => ipcRenderer.invoke("sap_verbindung_testen")
 });
