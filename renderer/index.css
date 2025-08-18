@@ -129,3 +129,100 @@ body { background: whitesmoke; }
   animation: fadeInUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
   will-change: transform, opacity;
 }
+
+/* ===== Kontextmenü (passt zu deinem Look) ===== */
+:root{
+  --menu-bg: #fff;
+  --menu-fg: #212529;
+  --menu-border: rgba(0,0,0,.1);
+  --menu-shadow: 0 12px 30px rgba(0,0,0,.15);
+  --menu-hover-bg: #f4f6f8;
+  --menu-danger: #c1121f;
+}
+
+/* Menübox */
+#toolContextMenu {
+  position: fixed;                 /* per JS links/oben setzen */
+  inset: auto auto auto auto;
+  display: none;                   /* via [aria-hidden] toggeln */
+  min-width: 220px;
+  max-width: 320px;
+  padding: 6px;
+  border: 1px solid var(--menu-border);
+  border-radius: 12px;
+  background: var(--menu-bg);
+  color: var(--menu-fg);
+  box-shadow: var(--menu-shadow);
+  z-index: 1100;                   /* > Navbar (1030) */
+  user-select: none;
+}
+#toolContextMenu[aria-hidden="false"] { display: block; }
+
+/* Menüeinträge */
+#toolContextMenu .item{
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+#toolContextMenu .item:hover,
+#toolContextMenu .item:focus-visible{
+  background: var(--menu-hover-bg);
+  outline: none;
+}
+#toolContextMenu .item.danger:hover,
+#toolContextMenu .item.danger:focus-visible{
+  background: #fdecec;
+  color: var(--menu-danger);
+}
+#toolContextMenu hr{
+  border: 0;
+  height: 1px;
+  background: #e9ecef;
+  margin: 6px 4px;
+}
+
+/* kleiner Pfeil (Arrow). Position via --tip-x aus JS feinjustierbar */
+#toolContextMenu::after{
+  content: "";
+  position: absolute;
+  width: 10px; height: 10px;
+  background: var(--menu-bg);
+  border-left: 1px solid var(--menu-border);
+  border-top: 1px solid var(--menu-border);
+  transform: rotate(45deg);
+  top: -6px;
+  left: var(--tip-x, 16px);
+}
+
+/* Dark Mode über Bootstrap Theme */
+[data-bs-theme="dark"] #toolContextMenu{
+  --menu-bg: #1e1f22;
+  --menu-fg: #e9ecef;
+  --menu-border: rgba(255,255,255,.12);
+  --menu-hover-bg: rgba(255,255,255,.08);
+  --menu-shadow: 0 12px 30px rgba(0,0,0,.5);
+}
+[data-bs-theme="dark"] #toolContextMenu::after{
+  border-color: var(--menu-border);
+  background: var(--menu-bg);
+}
+
+/* Besserer Fokus für Karten (Keyboard) */
+.tool-card:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13,110,253,.35);
+}
+
+/* Weniger Bewegung respektieren */
+@media (prefers-reduced-motion: reduce){
+  .tool-card{ transition: none; }
+  .appear{ animation: none; opacity: 1; transform: none; }
+}
