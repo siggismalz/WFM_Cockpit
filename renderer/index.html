@@ -15,7 +15,12 @@
 <!-- Navbar -->
 <nav class="navbar bg-body-tertiary">
   <div class="container-fluid d-flex align-items-center justify-content-between">
-    <span onclick="tool_cards_laden();" class="navbar-brand ms-3" style="cursor: pointer;">WFM Cockpit</span>
+    <div class="align-items-center d-flex">
+      <img class="img-fluid ms-3" src="/assets/icon.png" style="height: 30px;">
+      <span onclick="tool_cards_laden();" class="navbar-brand ms-4" 
+      style="cursor: pointer; font-family: Verdana, Geneva, Tahoma, sans-serif;">WFM Cockpit</span>
+    </div>
+
     <div class="d-flex align-items-center">
       <input id="T_suche" class="form-control" placeholder="Tools suchen" type="text" style="width: 15rem;">
       <button id="btn_suche" class="btn border-0" style="margin-right: 3rem;">
