@@ -1,9 +1,21 @@
+
+// ******************************************************** //
+// Der Code im Event-Listener wird beim Appstart ausgeführt //
+// ******************************************************** //
+
 document.addEventListener("DOMContentLoaded", () => {
+
+  // Tooltips der Buttons werden initialisiert
   const tooltipliste = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   [...tooltipliste].forEach(el => new bootstrap.Tooltip(el));
+
+  // Username wird gesetzt
   username_holen();
+
+  // Tools werden geladen
   tool_cards_laden();
 
+  // Modal für's speichern/hinzufügen von neuen Tools 
   const form = document.getElementById("toolForm");
   const modalEl = document.getElementById("toolModal");
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -64,37 +76,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+///////////////////////////////////////////////////////////////////////
 
+// Filterung auf Tools im Bereich "GH_Dispo"
 document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("GH_Dispo");
 });
 
+// Filterung auf Tools im Bereich "Sonderprozesse"
 document.getElementById("btn_sonderprozesse").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Sonderprozesse");
 });
 
+// Filterung auf Tools im Bereich "Organisation"
 document.getElementById("btn_organisation").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Organisation");
 });
 
+// Filterung auf Tools im Bereich "Auswertungen"
 document.getElementById("btn_Auswertungen").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Auswertungen");
 });
 
+// Filterung auf Tools im Bereich "Mailing"
 document.getElementById("btn_mail").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Mailing");
 });
 
+// Der Button der die Volltextsuche ausführt
 document.getElementById("btn_suche").addEventListener("click",() => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
@@ -102,15 +121,18 @@ document.getElementById("btn_suche").addEventListener("click",() => {
   tools_dursuchen(filter)
 });
 
+// Tool öffnen
 function tool_offnen(id) {
   window.electron.tool_oeffnen(id);
 };
 
+// Username abrufen
 async function username_holen(){
   let username = await window.electron.username();
   document.getElementById("username").innerText = username;
 };
 
+// Tools laden
 async function tool_cards_laden(filter){
   let daten = await window.electron.tools_laden(filter);
   if (!Array.isArray(daten) || daten.length === 0) return;
@@ -119,26 +141,25 @@ async function tool_cards_laden(filter){
   grid.innerHTML = "";
 
   daten.forEach((tool, index) => {
-const cardHTML = `
-  <div class="card tool-card shadow-sm appear" onclick="tool_offnen('${tool.id}')">
-    <div class="tool-accent"></div>
-    <div class="card-body">
-      <h6 class="tool-title mb-1">${tool.toolname}</h6>
-      <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
-    </div>
+  const cardHTML = `
+    <div class="card tool-card shadow-sm appear" onclick="tool_offnen('${tool.id}')">
+      <div class="tool-accent"></div>
+      <div class="card-body">
+        <h6 class="tool-title mb-1">${tool.toolname}</h6>
+        <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
+      </div>
 
-    <div class="card-footer bg-transparent">
-      <div class="tool-meta text-muted small"></div>
-      <button class="btn btn-light tool-open-btn" 
-              onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
-              aria-label="Öffnen">
-        <i class="bi bi-arrow-up-right"></i>
-      </button>
+      <div class="card-footer bg-transparent">
+        <div class="tool-meta text-muted small"></div>
+        <button class="btn btn-light tool-open-btn" 
+                onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
+                aria-label="Öffnen">
+          <i class="bi bi-arrow-up-right"></i>
+        </button>
+      </div>
     </div>
-  </div>
-`;
+  `;
     setTimeout(() => {
-      // Robust einfügen und Element referenzieren
       const tpl = document.createElement("template");
       tpl.innerHTML = cardHTML.trim();
       const el = tpl.content.firstElementChild;
@@ -151,10 +172,11 @@ const cardHTML = `
       el.addEventListener("animationend", () => {
         el.classList.remove("appear");
       }, { once: true });
-    }, index * 100); // Staffelung (optional)
+    }, index * 100);
   });
 };
 
+// Funktione zum laden der Tools für die Volltextsuche
 async function tools_dursuchen(filter){
   let daten = await window.electron.tools_dursuchen(filter);
   if (!Array.isArray(daten) || daten.length === 0) return;
@@ -163,24 +185,24 @@ async function tools_dursuchen(filter){
   grid.innerHTML = "";
 
   daten.forEach((tool, index) => {
-const cardHTML = `
-  <div class="card tool-card shadow-sm appear" onclick="tool_offnen('${tool.id}')">
-    <div class="tool-accent"></div>
-    <div class="card-body">
-      <h6 class="tool-title mb-1">${tool.toolname}</h6>
-      <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
-    </div>
+  const cardHTML = `
+    <div class="card tool-card shadow-sm appear" onclick="tool_offnen('${tool.id}')">
+      <div class="tool-accent"></div>
+      <div class="card-body">
+        <h6 class="tool-title mb-1">${tool.toolname}</h6>
+        <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
+      </div>
 
-    <div class="card-footer bg-transparent">
-      <div class="tool-meta text-muted small"></div>
-      <button class="btn btn-light tool-open-btn" 
-              onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
-              aria-label="Öffnen">
-        <i class="bi bi-arrow-up-right"></i>
-      </button>
+      <div class="card-footer bg-transparent">
+        <div class="tool-meta text-muted small"></div>
+        <button class="btn btn-light tool-open-btn" 
+                onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
+                aria-label="Öffnen">
+          <i class="bi bi-arrow-up-right"></i>
+        </button>
+      </div>
     </div>
-  </div>
-`;
+  `;
     setTimeout(() => {
       // Robust einfügen und Element referenzieren
       const tpl = document.createElement("template");
@@ -195,10 +217,11 @@ const cardHTML = `
       el.addEventListener("animationend", () => {
         el.classList.remove("appear");
       }, { once: true });
-    }, index * 100); // Staffelung (optional)
+    }, index * 100);
   });
 };
 
+// Funktion zum löschen der Tools im Userordner
 async function speicher_bereinigen(){
   await window.electron.tools_ordner_leeren();
   const Toast = Swal.mixin({
@@ -212,16 +235,18 @@ async function speicher_bereinigen(){
     toast.onmouseleave = Swal.resumeTimer;
   }
 });
-Toast.fire({
-  icon: "success",
-  title: "Speicher erfolgreich bereinigt"
-});
+  Toast.fire({
+    icon: "success",
+    title: "Speicher erfolgreich bereinigt"
+  });
 };
 
+// Funktion zum warten LOL
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Funktion zum schließen der App
 async function abmelden(){
   const Toast = Swal.mixin({
   toast: true,
@@ -244,6 +269,8 @@ Toast.fire({
   window.electron.abmelden();
 };
 
+
+// Funktion für den Test der SAP-Verbindung
 async function sap_verbindung_test(){
   const ergebnis = window.electron.sap_verbindung_testen();
 
