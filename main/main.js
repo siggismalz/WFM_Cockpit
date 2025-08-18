@@ -18,7 +18,8 @@ const mainwindow_erstellen = () => {
       allowRunningInsecureContent: false,
       nodeIntegration: true
     },
-    title: "WFM Cockpit"
+    title: "WFM Cockpit",
+    icon: path.join(__dirname,"..","assets","icon.ico")
   });
 
   mainwindow.loadFile(path.join(__dirname,"..","renderer","index.html"))
