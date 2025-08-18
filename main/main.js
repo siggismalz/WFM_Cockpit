@@ -1,4 +1,6 @@
-// Importe
+// ***************************** //
+// Importe und Verbindlichkeiten //
+// ----------------------------- //
 const {app,BrowserWindow,ipcMain,dialog,shell} = require("electron");
 const path = require("path");
 const os = require("os");
@@ -6,9 +8,15 @@ const odbc = require("odbc");
 const fs = require("fs");
 const winax = require("winax");
 
+// Globale Datenbankverbindung
+// Die Verbindung wird für die ganze App-Laufzeit aufrecht gehalten
 let verbindung;
 
-// Windows
+// *************************** //
+// Alle definierten Appfenster //
+// --------------------------- //
+
+// Das Mainwindow ist das Hauptprozess-Fenster
 let mainwindow;
 const mainwindow_erstellen = () => {
   mainwindow = new BrowserWindow({
@@ -26,6 +34,8 @@ const mainwindow_erstellen = () => {
   mainwindow.loadFile(path.join(__dirname,"..","renderer","index.html"))
 };
 
+// Splashscreen für den Appstart
+// !ToDo: Eventuell validierungsfunktionen einfügen für einen echten Health-Check
 let splashscreen;
 const splashscreen_erstellen = () => {
   splashscreen = new BrowserWindow({
@@ -42,12 +52,19 @@ const splashscreen_erstellen = () => {
   splashscreen.loadFile(path.join(__dirname,"..","renderer","splash.html"));
 };
 
-//IPC Handler
+// ************************************************ //
+// IPC Handler für das verarbeiten von API-Anfragen //
+// ------------------------------------------------ //
+
+// username wird ermittelt
 ipcMain.handle("username",() => {
   let username = os.userInfo().username;
   return username;
 });
 
+// Die Tools werden von der Datenbank abgerufen
+// Wenn der Parameter "filter" nicht mitgegeben wurde, dann wird der where-Filter
+// im SQL-String auf 1=1 (true) gesetzt
 ipcMain.handle("tools_laden", async (event,filter) => {
   try {
     
@@ -73,6 +90,9 @@ ipcMain.handle("tools_laden", async (event,filter) => {
   }
 });
 
+// Ähnliche Funktion wie "tools_laden". Aber diese Funktion hier ist für die Volltext-Suche im Tool ausgelegt
+// Wenn der "filter"-Parameter mitgegeben wird, dann werden jegliche Spalten anhand von wildcards durchsucht.
+// Die Ergebnisse werden dann im Tool zurückgegeben
 ipcMain.handle("tools_dursuchen", async (event,filter) => {
   try {
     const sql_string = `
@@ -94,6 +114,9 @@ ipcMain.handle("tools_dursuchen", async (event,filter) => {
   };
 });
 
+// Funktionalität zum öffnen der Tools
+// Im Homedirectory des Users wird der Ordner "WFM-Cockpit" einmalig erstellt.
+// Die Tools werden anhand des id Parameters ermittelt. Das Tool wird in den Ordner kopiert und von dort aus geöffnet.
 ipcMain.handle("tool_oeffnen", async (event, id) => {
   let daten = await verbindung.query(`SELECT toolpfad FROM T_WFM_Cockpit WHERE id = ${id}`);
   let pfad = daten[0]?.toolpfad;
@@ -122,9 +145,9 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
   }
 });
 
+// Neue Tools, die ins Tool eingefügt werden sollen, werden über diese API in die Datenbank geschrieben
 ipcMain.handle("tool_speichern", async (_evt, t) => {
   try {
-    // Serverseitig minimal validieren
     const { toolname, toolbeschreibung, toolpfad, toolart } = t || {};
     if (![toolname, toolbeschreibung, toolpfad, toolart].every(v => typeof v === "string" && v.trim())) {
       throw new Error("Bitte alle Pflichtfelder ausfüllen.");
@@ -144,6 +167,8 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
   }
 });
 
+// Der Ordner im Homedirectory wird geleert. Alle vorhandenen Tools darin werden gelöscht.
+// Keine Gefahr, da nur Userseitig
 ipcMain.handle("tools_ordner_leeren", async () => {
   const zielordner = path.join(os.homedir(), "WFM-Cockpit");
 
@@ -162,21 +187,29 @@ ipcMain.handle("tools_ordner_leeren", async () => {
   }
 });
 
+// Das Tool schließt sich
 ipcMain.handle("abmelden",() => {
   app.quit();
 });
 
+//SAP Verbindung wird getestet
 ipcMain.handle("sap_verbindung_testen",async () => {
   const erfolg = await sap_verbindung();
   return erfolg;
 });
 
-// Funktionen
+// *************************** //
+// Allgemeine  Hilfsfunktionen //
+// --------------------------- //
+
+// Hier wird die Verbindung zur Datenbank aufgebaut
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
   verbindung = await odbc.connect(verbindungszeichenfolge);
 }
 
+// Hier prüfen wir ob eine Verbindung zu SAP-GUIXT möglich ist. 
+// Inkl. Rückmeldung über Erfolg oder Misserfolg
 async function sap_verbindung() {
   try {
     const com = new winax.Object("SapROTWr.SAPROTWrapper");
@@ -202,10 +235,11 @@ async function sap_verbindung() {
   }
 }
 
+// ************************* //
+// Allgemeine App-Ereignisse //
+// ------------------------- //
 
-
-
-// App-Ereignisse
+// Event beim starten der APP
 app.on("ready",async () => {
   await datenbank_verbindung();
   splashscreen_erstellen();
@@ -216,10 +250,13 @@ app.on("ready",async () => {
 
 });
 
+// Event beim beenden der APP
 app.on("quit",() => {
   app.quit();
 });
 
+// Event bevor die App beendet wird
+// Verbindung zum Server wird getrennt
 app.on("before-quit",async () => {
   if (verbindung) await verbindung.close();
 });
