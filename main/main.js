@@ -78,21 +78,31 @@ ipcMain.handle("tools_dursuchen", async (event,filter) => {
 });
 
 ipcMain.handle("tool_oeffnen", async (event, id) => {
-  let daten = await verbindung.query(`Select toolpfad from T_WFM_Cockpit where id =${id}`);
-  pfad = daten[0].toolpfad
-  
-  if (pfad !== ""){
-    let zielpfad = path.join(os.homedir(),path.basename(pfad));
-    try{
-      fs.copyFileSync(pfad,zielpfad)
-      shell.openPath(zielpfad);} 
-    catch(err){
-        throw err;
+  let daten = await verbindung.query(`SELECT toolpfad FROM T_WFM_Cockpit WHERE id = ${id}`);
+  let pfad = daten[0]?.toolpfad;
+
+  if (pfad && pfad !== "") {
+    // Zielordner im Homedir
+    const zielordner = path.join(os.homedir(), "WFM-Cockpit");
+
+    // Ordner anlegen, falls er nicht existiert
+    if (!fs.existsSync(zielordner)) {
+      fs.mkdirSync(zielordner, { recursive: true });
+    }
+
+    // Zieldatei in diesem Ordner
+    const zielpfad = path.join(zielordner, path.basename(pfad));
+
+    try {
+      fs.copyFileSync(pfad, zielpfad);
+      await shell.openPath(zielpfad);
+    } catch (err) {
+      console.error("Fehler beim Kopieren/Öffnen:", err);
+      throw err;
     }
   } else {
-    console.log("Kein Pfad gefunden")
+    console.log("Kein Pfad gefunden");
   }
-
 });
 
 ipcMain.handle("tool_speichern", async (_evt, t) => {
