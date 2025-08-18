@@ -4,6 +4,7 @@ const path = require("path");
 const os = require("os");
 const odbc = require("odbc");
 const fs = require("fs");
+const winax = require("winax");
 
 let verbindung;
 
@@ -154,6 +155,8 @@ async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
   verbindung = await odbc.connect(verbindungszeichenfolge);
 }
+
+
 
 // App-Ereignisse
 app.on("ready",async () => {
