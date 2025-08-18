@@ -202,3 +202,29 @@ Toast.fire({
   title: "Speicher erfolgreich bereinigt"
 });
 };
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function abmelden(){
+  const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+Toast.fire({
+  icon: "info",
+  title: "Du wirst nun abgemeldet"
+});
+  
+  await wait(4000);
+
+  window.electron.abmelden();
+};

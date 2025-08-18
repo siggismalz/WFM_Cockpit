@@ -145,6 +145,10 @@ ipcMain.handle("tools_ordner_leeren", async () => {
   }
 });
 
+ipcMain.handle("abmelden",() => {
+  app.quit();
+});
+
 // Funktionen
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
