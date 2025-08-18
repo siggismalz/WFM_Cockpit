@@ -278,7 +278,7 @@ Toast.fire({
   }
 });
 Toast.fire({
-  icon: "danger",
+  icon: "error",
   title: "Keine Verbindung zu SAP möglich"
 });
   }
