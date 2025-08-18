@@ -26,6 +26,22 @@ const mainwindow_erstellen = () => {
   mainwindow.loadFile(path.join(__dirname,"..","renderer","index.html"))
 };
 
+let splashscreen;
+const splashscreen_erstellen = () => {
+  splashscreen = new BrowserWindow({
+    title: "",
+    width: 500,
+    height: 500,
+    autoHideMenuBar: true,
+    maximizable: false,
+    alwaysOnTop: true,
+    resizable: false,
+    skipTaskbar: true,
+    center: true
+  });
+  splashscreen.loadFile(path.join(__dirname,"..","renderer","splash.html"));
+};
+
 //IPC Handler
 ipcMain.handle("username",() => {
   let username = os.userInfo().username;
@@ -191,8 +207,13 @@ async function sap_verbindung() {
 
 // App-Ereignisse
 app.on("ready",async () => {
-  mainwindow_erstellen();
   await datenbank_verbindung();
+  splashscreen_erstellen();
+  setTimeout(() => {
+    splashscreen.close();
+    mainwindow_erstellen();
+  },4000);
+
 });
 
 app.on("quit",() => {
