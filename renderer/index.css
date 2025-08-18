@@ -1,7 +1,10 @@
-/* ===== Base ===== */
+/* === Nur Gott weiß was hier passiert === */
+
+
+/* ===== Body hintergrund ===== */
 body { background: whitesmoke; }
 
-/* ===== Layout: Navbar / Sidebar / Main ===== */
+/* ===== Grobes Layout: Navbar / Sidebar / Main ===== */
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
