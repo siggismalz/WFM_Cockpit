@@ -397,15 +397,16 @@ Toast.fire({
           if (typeof tool_offnen === 'function') tool_offnen(toolId);
           break;
 
-        case 'edit':
-          if (window.electron?.tool_bearbeiten) {
-            const ok = await window.electron.tool_bearbeiten(toolId);
-            if (ok) tool_cards_laden(); // refresh
+        case 'open_dir': {
+          const res = await window.electron.dir_laden(toolId);
+          if (res?.success) {
+            // ggf. kein Refresh nötig, wenn nur Ordner geöffnet wird – aber du wolltest es so:
+            tool_cards_laden();
           } else {
-            console.log('[edit]', toolId);
-            // TODO: Edit-Modal öffnen & befüllen
+            console.error("Ordner konnte nicht geöffnet werden:", res?.message);
           }
           break;
+        }
 
         case 'pin':
           if (window.electron?.tool_pin_toggle) {

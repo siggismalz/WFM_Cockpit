@@ -201,7 +201,7 @@ ipcMain.handle("sap_verbindung_testen",async () => {
 ipcMain.handle("tool_loeschen", async (event, id) => {
   try {
     const user = os.userInfo().username.toLowerCase();
-    const developer = ["leon.stolz","max.wandt","roman.ensel","jasmin.huber"]
+    const developer = ["leons","leon.stolz","max.wandt","roman.ensel","jasmin.huber"]
     if (developer.includes(user)) {
       await verbindung.query(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`);
       console.log(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`)
@@ -212,6 +212,24 @@ ipcMain.handle("tool_loeschen", async (event, id) => {
 
   } catch (err) {
     return { success: false, message: err.message };
+  }
+});
+
+ipcMain.handle("dir_laden",async (event,id) => {
+  try {
+    const sql = `Select toolpfad from T_WFM_Cockpit where id = ${id}`;
+    const daten = await verbindung.query(sql);
+    let pfad = daten[0]?.toolpfad;
+    pfad = path.normalize(pfad);
+    const ordnerPfad = path.dirname(path.normalize(pfad));
+    const result = await shell.openPath(ordnerPfad);
+    if (result) {
+      return { success: false, message: "Fehler beim Öffnen: " + result };
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[dir_laden] Fehler:", err);
+    return { success: false, message: err?.message || String(err) };
   }
 });
 
