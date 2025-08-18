@@ -3,18 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ======================================= Abhängigkeiten ===================================================== -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="index.css">
+  <!--==============================================================================================================-->
+
   <title>WFM Cockpit</title>
 </head>
 
 <body>
 
-<!-- Navbar -->
+<!-- Navbar (der obere Bereich der App) -->
 <nav class="navbar bg-body-tertiary">
   <div class="container-fluid d-flex align-items-center justify-content-between">
+
+    <!-- Icon inklusive App-Titel -->
     <div class="align-items-center d-flex">
       <img onclick="tool_cards_laden();" class="img-fluid ms-3" src="../assets/icon.png" style="height: 30px;">
       <span onclick="tool_cards_laden();" class="navbar-brand ms-4" 
@@ -22,17 +28,20 @@
     </div>
 
     <div class="d-flex align-items-center">
+      <!-- Suchfunktionalität (Volltextsuche)-->
       <input id="T_suche" class="form-control" placeholder="Tools suchen" type="text" style="width: 15rem;">
       <button id="btn_suche" class="btn border-0" style="margin-right: 3rem;">
         <i class="bi bi-search"></i>
       </button>
 
-      <!-- Dropdown -->
       <div class="dropdown me-2">
+        <!-- Profilsektion -->
         <button class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center" 
                 type="button" id="profilDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
           <i class="bi bi-person-fill fs-6"></i>
         </button>
+
+        <!-- Dropdownfeld für "Profilfunktionen" -->
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profilDropdown">
           <li><button class="dropdown-item" onclick="speicher_bereinigen()">Speicher bereinigen</button></li>
           <li><button class="dropdown-item" onclick="sap_verbindung_test()">SAP-Verbindung testen</button></li>
@@ -41,13 +50,15 @@
         </ul>
       </div>
 
+      <!-- Vorname und Nachname des Users (wird beim starten der App ermittelt) -->
       <span id="username" class="text-black">Vorname Nachname</span>
     </div>
   </div>
 </nav>
 
 
-  <!-- Sidebar -->
+  <!-- Sidebar links -->
+  <!-- Oberer Bereich -->
   <div class="sidebar d-flex flex-column">
     <button id="btn_gh_dispo_tools" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Aufgabenliste GH-Dispo">
       <i class="bi bi-list-task"></i>
@@ -64,7 +75,7 @@
     <button id="btn_mail" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
       <i class="bi bi-envelope-fill"></i>
     </button>
-
+    <!-- Unterer Bereich -->
     <div class="mt-auto">
       <button id="btn_open_modal" class="btn d-block fs-4 mb-1 w-100" data-bs-toggle="modal" data-bs-target="#toolModal">
         <i class="bi bi-plus-circle-fill"></i>
@@ -76,7 +87,6 @@
   <div class="main-content">
 
     <div class="card-grid">
-
     </div>
 
   </div>
