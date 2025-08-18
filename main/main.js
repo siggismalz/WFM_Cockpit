@@ -127,7 +127,25 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
   }
 });
 
+ipcMain.handle("tools_ordner_leeren", async () => {
+  const zielordner = path.join(os.homedir(), "WFM-Cockpit");
 
+  try {
+    if (fs.existsSync(zielordner)) {
+      // Alle Dateien im Ordner löschen
+      for (const datei of fs.readdirSync(zielordner)) {
+        const dateipfad = path.join(zielordner, datei);
+        fs.rmSync(dateipfad, { recursive: true, force: true });
+      }
+    }
+    return { success: true, message: "Ordner erfolgreich geleert." };
+  } catch (err) {
+    console.error("Fehler beim Leeren des Ordners:", err);
+    return { success: false, message: err.message };
+  }
+});
+
+// Funktionen
 async function datenbank_verbindung() {
   const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
   verbindung = await odbc.connect(verbindungszeichenfolge);

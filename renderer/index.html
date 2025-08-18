@@ -12,22 +12,35 @@
 
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar bg-body-tertiary">
-    <div class="container-fluid d-flex align-items-center justify-content-between">
-      <span onclick="tool_cards_laden();" class="navbar-brand ms-3" style="cursor: pointer;">WFM Cockpit</span>
-      <div class="d-flex align-items-center">
-        <input id="T_suche" class="form-control" placeholder="Tools suchen" type="text" style="width: 15rem;">
-        <button id="btn_suche" class="btn border-0" style="margin-right: 3rem;">
-          <i class="bi bi-search"></i>
-        </button>
-        <button class="btn-sm btn-outline-dark rounded-circle me-2">
+<!-- Navbar -->
+<nav class="navbar bg-body-tertiary">
+  <div class="container-fluid d-flex align-items-center justify-content-between">
+    <span onclick="tool_cards_laden();" class="navbar-brand ms-3" style="cursor: pointer;">WFM Cockpit</span>
+    <div class="d-flex align-items-center">
+      <input id="T_suche" class="form-control" placeholder="Tools suchen" type="text" style="width: 15rem;">
+      <button id="btn_suche" class="btn border-0" style="margin-right: 3rem;">
+        <i class="bi bi-search"></i>
+      </button>
+
+      <!-- Dropdown -->
+      <div class="dropdown me-2">
+        <button class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center" 
+                type="button" id="profilDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
           <i class="bi bi-person-fill fs-6"></i>
         </button>
-        <span id="username" class="text-black">Vorname Nachname</span>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profilDropdown">
+          <li><button class="dropdown-item" onclick="speicher_bereinigen()">Speicher bereinigen</button></li>
+          <li><button class="dropdown-item" onclick="einstellungen()">Einstellungen</button></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><button class="dropdown-item text-danger" onclick="abmelden()">Abmelden</button></li>
+        </ul>
       </div>
+
+      <span id="username" class="text-black">Vorname Nachname</span>
     </div>
-  </nav>
+  </div>
+</nav>
+
 
   <!-- Sidebar -->
   <div class="sidebar d-flex flex-column">
@@ -124,7 +137,7 @@
       </div>
     </div>
   </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="index.js"></script>
 </body>
 </html>

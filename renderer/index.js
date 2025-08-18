@@ -182,5 +182,23 @@ const cardHTML = `
       }, { once: true });
     }, index * 100); // Staffelung (optional)
   });
-}
+};
 
+async function speicher_bereinigen(){
+  await window.electron.tools_ordner_leeren();
+  const Toast = Swal.mixin({
+  toast: true,
+  position: "bottom-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
+Toast.fire({
+  icon: "success",
+  title: "Speicher erfolgreich bereinigt"
+});
+};
