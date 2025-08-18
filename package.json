@@ -10,8 +10,10 @@
     "start": "electron ."
   },
   "dependencies": {
+    "bootstrap": "^5.3.7",
     "electron": "^37.2.6",
     "odbc": "^2.4.9",
+    "sweetalert2": "^11.22.4",
     "winax": "^3.6.2"
   }
 }
