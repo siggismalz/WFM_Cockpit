@@ -1,5 +1,7 @@
-const {contextBridge,ipcRenderer, ipcMain} = require("electron");
+const {contextBridge,ipcRenderer} = require("electron");
 
+// API's die öffentlich (exposed) im Frontend und im Backend zur Verfügung stehen
+// Einzelne Funktionen sind in der main.js erklärt
 contextBridge.exposeInMainWorld("electron",{
   username: () => ipcRenderer.invoke("username"),
   tools_laden: (filter) => ipcRenderer.invoke("tools_laden",(filter)),
