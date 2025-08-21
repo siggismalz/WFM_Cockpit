@@ -20,12 +20,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   const errorBox = document.getElementById("toolFormError");
 
-  modalEl.addEventListener("hidden.bs.modal", () => {
-    form.reset();
-    form.classList.remove("was-validated");
-    errorBox.classList.add("d-none");
-    errorBox.textContent = "";
-  });
+    modalEl.addEventListener("hidden.bs.modal", () => {
+      form.reset();
+      form.classList.remove("was-validated");
+      errorBox.classList.add("d-none");
+      errorBox.textContent = "";
+
+      // NEU: Edit-Mode zurücksetzen
+      delete form.dataset.editId;
+      document.getElementById("toolModalLabel").textContent = "Neues Tool hinzufügen";
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.textContent = "Speichern";
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -45,18 +51,20 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       try {
-        if (window.electron?.tool_speichern) {
-          const res = await window.electron.tool_speichern(daten);
-          if (res?.ok) {
-            modal.hide();
-            tool_cards_laden();
-            toast('success', 'Tool erfolgreich hinzugefügt');
-            return;
-          }
-          throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
-        } else {
+        const editId = form.dataset.editId;
+        const call = editId ? window.electron?.tool_update : window.electron?.tool_speichern;
+        const payload = editId ? { id: editId, ...daten } : daten;
+
+        if (!call) throw new Error("IPC nicht verfügbar");
+
+        const res = await call(payload);
+        if (res?.ok) {
           modal.hide();
+          tool_cards_laden();
+          toast('success', editId ? 'Tool aktualisiert' : 'Tool erfolgreich hinzugefügt');
+          return;
         }
+        throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
       } catch (err) {
         errorBox.textContent = err.message || String(err);
         errorBox.classList.remove("d-none");
@@ -560,6 +568,56 @@ async function tools_dursuchen(filter) {
           if (!res?.success) console.error("Ordner konnte nicht geöffnet werden:", res?.message);
           break;
         }
+case 'edit': {
+  // Berechtigung wie beim Plus-Button
+  const devs = ["leons","leon.stolz","max.wandt","roman.ensel","jasmin.huber"];
+  const u = (await window.electron.username() || '').toLowerCase();
+  if (!devs.includes(u)) {
+    toast('error', 'Keine Berechtigung für diesen Vorgang');
+    return;
+  }
+
+  // >>> hier: Form/Modal/ErrorBox lokal holen (wichtiger Fix)
+  const form = document.getElementById('toolForm');
+  const errorBox = document.getElementById('toolFormError');
+  const modalEl = document.getElementById('toolModal');
+  if (!form || !modalEl) { console.error('[edit] Form oder Modal nicht gefunden'); return; }
+  const myModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+  // Daten laden: erst DB, dann Fallback von der Card
+  let data = null;
+  try {
+    if (window.electron?.tool_details) data = await window.electron.tool_details(toolId);
+  } catch {}
+  if (!data) {
+    const card = document.querySelector(`.tool-card[data-tool-id="${CSS.escape(toolId)}"]`);
+    data = readToolDataFromCard(card);
+  }
+
+  // Prefill
+  document.getElementById('toolname').value = data.toolname || '';
+  document.getElementById('toolart').value = data.toolart || '';
+  document.getElementById('version').value = (data.Version ?? data.version ?? '') || '';
+  document.getElementById('entwickler').value = (data.Entwickler ?? data.entwickler ?? '') || '';
+  document.getElementById('toolpfad').value = data.toolpfad || '';
+  document.getElementById('toolbeschreibung').value = data.toolbeschreibung || '';
+  document.getElementById('beschreibung_lang').value = (data.Beschreibung_lang ?? data.beschreibung_lang ?? '') || '';
+
+  const ver = data.Veroeffentlicht_am ?? data.veroeffentlicht_am ?? data.veroeff ?? '';
+  document.getElementById('veroeffentlicht_am').value = toDateInputValue(ver);
+
+  // Edit-Mode markieren & UI anpassen
+  form.dataset.editId = String(data.id ?? toolId);
+  document.getElementById("toolModalLabel").textContent = "Tool bearbeiten";
+  const submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.textContent = "Aktualisieren";
+  form.classList.remove("was-validated");
+  if (errorBox) { errorBox.classList.add("d-none"); errorBox.textContent = ""; }
+
+  // Modal zeigen
+  myModal.show();
+  break;
+}
 
         case 'fav_toggle': {
           // Favorit toggeln und UI ggf. aktualisieren
@@ -638,5 +696,14 @@ function escapeAttr(v) {
     .replaceAll('"','&quot;')
     .replaceAll('<','&lt;')
     .replaceAll('>','&gt;');
+}
+function toDateInputValue(v) {
+  if (!v) return '';
+  const d = (v instanceof Date) ? v : new Date(v);
+  if (isNaN(d)) return '';
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 

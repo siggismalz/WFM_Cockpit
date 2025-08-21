@@ -17,4 +17,6 @@ contextBridge.exposeInMainWorld("electron",{
   fav_toggle: (id) => ipcRenderer.invoke("fav_toggle", id),
   is_fav: (id) => ipcRenderer.invoke("is_fav", id),
   favs_set: (ids) => ipcRenderer.invoke("favs_set", ids),
+  tool_update: (tool) => ipcRenderer.invoke("tool_update", tool),
+  tool_details: (id) => ipcRenderer.invoke("tool_details", id)
 });

@@ -367,6 +367,47 @@ ipcMain.handle("favs_storage_info", async () => {
   };
 });
 
+ipcMain.handle("tool_details", async (_evt, id) => {
+  const rows = await verbindung.query("SELECT * FROM T_WFM_COCKPIT WHERE ID = ?", [id]);
+  return rows && rows[0] ? rows[0] : null;
+});
+
+ipcMain.handle("tool_update", async (_evt, t) => {
+  try {
+    const user = os.userInfo().username.toLowerCase();
+    const developer = ["leons","leon.stolz","max.wandt","roman.ensel","jasmin.huber"];
+    if (!developer.includes(user)) {
+      return { ok: false, message: "Keine Berechtigung" };
+    }
+
+    const {
+      id,
+      toolname, toolbeschreibung, toolpfad, toolart,
+      version, entwickler, beschreibung_lang, veroeffentlicht_am
+    } = t || {};
+
+    const idNum = Number(id);
+    if (!Number.isFinite(idNum)) throw new Error("Ungültige ID");
+
+    if (![toolname, toolbeschreibung, toolpfad, toolart].every(v => typeof v === "string" && v.trim())) {
+      throw new Error("Bitte alle Pflichtfelder ausfüllen.");
+    }
+
+    await verbindung.query(
+      `UPDATE T_WFM_COCKPIT
+         SET toolname = ?, toolbeschreibung = ?, toolpfad = ?, toolart = ?,
+             Version = ?, Entwickler = ?, Beschreibung_lang = ?, Veroeffentlicht_am = ?
+       WHERE ID = ?`,
+      [toolname, toolbeschreibung, toolpfad, toolart, version, entwickler, beschreibung_lang, veroeffentlicht_am, idNum]
+    );
+
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, message: err.message || String(err) };
+  }
+});
+
+
 // *************************** //
 // Allgemeine  Hilfsfunktionen //
 // --------------------------- //
