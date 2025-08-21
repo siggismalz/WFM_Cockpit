@@ -414,39 +414,9 @@ ipcMain.handle("tool_update", async (_evt, t) => {
 
 // DB-Verbindung
 async function datenbank_verbindung() {
-  const connStr1 =
-    "DRIVER={ODBC Driver 18 for SQL Server};" +
-    "SERVER=viwsw-sqldispgh;" +                      // <- anpassen
-    "DATABASE=DeltaMaster_EDEKA_Dispo;" +
-    "Trusted_Connection=Yes;" +
-    "TrustServerCertificate=Yes;" +
-    "Login Timeout=5;Connection Timeout=5;";
-
-  const connStr2 =
-    "DRIVER={ODBC Driver 18 for SQL Server};" +
-    "SERVER=SERVER;" +                      // <- anpassen
-    "DATABASE=Testdata;" +
-    "Trusted_Connection=Yes;" +
-    "TrustServerCertificate=Yes;" +
-    "Login Timeout=5;Connection Timeout=5;";
-
-  const tryConnect = async (cs) => {
-    const conn = await odbc.connect(cs);
-    await conn.query("SELECT 1"); // einfacher Ping
-    return conn;
-  };
-
-  try {
-    verbindung = await tryConnect(connStr1);
-  } catch (e1) {
-    try {
-      verbindung = await tryConnect(connStr2);
-    } catch (e2) {
-      throw new Error(
-        `DB-Verbindung fehlgeschlagen.\nPrimär: ${e1.message}\nSekundär: ${e2.message}`
-      );
-    }
-  }
+  const verbindungszeichenfolge =
+    "DRIVER={ODBC Driver 18 for SQL Server};SERVER=viwsw-sqldispgh;DATABASE=DeltaMaster_EDEKA_Dispo;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
+  verbindung = await odbc.connect(verbindungszeichenfolge);
 }
 
 // SAP-GUI Scripting Check
@@ -457,21 +427,26 @@ async function sap_verbindung() {
     if (!sapguiauto) {
       return { success: false, message: "SAPGUI nicht gefunden" };
     }
+
     const app = sapguiauto.GetScriptingEngine();
-    const anzahl_verbindungen = app.Children.Count;
+    const anzahl_verbindungen = app.Children.Count(); // Count als Funktion
     if (anzahl_verbindungen === 0) {
       return { success: false, message: "Keine aktive SAP-Verbindung gefunden" };
     }
+
     const sap_verbindung = app.Children.Item(0);
-    const anzahl_children = sap_verbindung.Children.Count();
-    if (anzahl_children === 0) {
+    const anzahl_sessions = sap_verbindung.Children.Count(); // ebenfalls als Funktion
+    if (anzahl_sessions === 0) {
       return { success: false, message: "Keine SAP Session gefunden" };
     }
-    return { success: true, message: "SAP-Verbindung erfolgreich hergestellt", verbindung: sap_verbindung };
+
+    const session = sap_verbindung.Children.Item(0);
+    return { success: true, message: "SAP-Verbindung erfolgreich hergestellt", verbindung: session };
   } catch (err) {
     return { success: false, message: "Fehler: " + err.message };
   }
 }
+
 
 // ************************* //
 // Allgemeine App-Ereignisse //
