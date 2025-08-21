@@ -1,13 +1,14 @@
 {
   "name": "wfm_cockpit",
   "version": "2.0.0",
-  "description": "Software zur verwaltung der benutzerdefinierten Tools des Warenflussmanegements der EDEKA Südwest",
+  "description": "Software zur Verwaltung der benutzerdefinierten Tools des Warenflussmanagements der EDEKA Südwest",
   "license": "MIT",
   "author": "Leon Stolz",
   "type": "commonjs",
   "main": "main/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder"
   },
   "dependencies": {
     "bootstrap": "^5.3.7",
@@ -19,11 +20,12 @@
     "electron": "^37.3.1",
     "electron-builder": "^26.0.12"
   },
-    "build": {
+  "build": {
     "appId": "com.edeka.wfm_cockpit",
     "productName": "WFM Cockpit",
     "icon": "assets/icon.ico",
     "win": {
       "target": "nsis"
+    }
   }
-} }
+}
