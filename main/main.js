@@ -414,9 +414,39 @@ ipcMain.handle("tool_update", async (_evt, t) => {
 
 // DB-Verbindung
 async function datenbank_verbindung() {
-  const verbindungszeichenfolge =
-    "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
-  verbindung = await odbc.connect(verbindungszeichenfolge);
+  const connStr1 =
+    "DRIVER={ODBC Driver 18 for SQL Server};" +
+    "SERVER=viwsw-sqldispgh;" +                      // <- anpassen
+    "DATABASE=DeltaMaster_EDEKA_Dispo;" +
+    "Trusted_Connection=Yes;" +
+    "TrustServerCertificate=Yes;" +
+    "Login Timeout=5;Connection Timeout=5;";
+
+  const connStr2 =
+    "DRIVER={ODBC Driver 18 for SQL Server};" +
+    "SERVER=SERVER;" +                      // <- anpassen
+    "DATABASE=Testdata;" +
+    "Trusted_Connection=Yes;" +
+    "TrustServerCertificate=Yes;" +
+    "Login Timeout=5;Connection Timeout=5;";
+
+  const tryConnect = async (cs) => {
+    const conn = await odbc.connect(cs);
+    await conn.query("SELECT 1"); // einfacher Ping
+    return conn;
+  };
+
+  try {
+    verbindung = await tryConnect(connStr1);
+  } catch (e1) {
+    try {
+      verbindung = await tryConnect(connStr2);
+    } catch (e2) {
+      throw new Error(
+        `DB-Verbindung fehlgeschlagen.\nPrimär: ${e1.message}\nSekundär: ${e2.message}`
+      );
+    }
+  }
 }
 
 // SAP-GUI Scripting Check
