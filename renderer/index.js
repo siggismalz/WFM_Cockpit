@@ -1,26 +1,25 @@
 // ******************************************************** //
-// Der Code im Event-Listener wird beim Appstart ausgeführt //
+// Appstart                                                 //
 // ******************************************************** //
 
 document.addEventListener("DOMContentLoaded", () => {
 
-  // Tooltips der Buttons werden initialisiert
+  // Tooltips
   const tooltipListe = document.querySelectorAll('[data-bs-toggle="tooltip"]');
   [...tooltipListe].forEach(el => new bootstrap.Tooltip(el));
 
-  // Username wird gesetzt
+  // Username
   username_holen();
 
-  // Tools werden geladen
+  // Tools initial laden
   tool_cards_laden();
 
-  // Modal für's speichern/hinzufügen von neuen Tools
+  // Modal "Neues Tool"
   const form = document.getElementById("toolForm");
   const modalEl = document.getElementById("toolModal");
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   const errorBox = document.getElementById("toolFormError");
 
-  // Modal resetten, wenn es geschlossen wird
   modalEl.addEventListener("hidden.bs.modal", () => {
     form.reset();
     form.classList.remove("was-validated");
@@ -32,7 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     form.classList.add("was-validated");
     errorBox.classList.add("d-none");
-
     if (!form.checkValidity()) return;
 
     const daten = {
@@ -48,21 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res?.ok) {
           modal.hide();
           tool_cards_laden();
-          const Toast = Swal.mixin({
-            toast: true,
-            position: "bottom-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.onmouseenter = Swal.stopTimer;
-              toast.onmouseleave = Swal.resumeTimer;
-            }
-          });
-          Toast.fire({
-            icon: "success",
-            title: "Tool erfolgreich hinzugefügt"
-          });
+          toast('success', 'Tool erfolgreich hinzugefügt');
           return;
         }
         throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
@@ -75,52 +59,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-///////////////////////////////////////////////////////////////////////
 
-// Filterung auf Tools im Bereich "GH_Dispo"
-document.getElementById("btn_gh_dispo_tools").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
-  tool_cards_laden("GH_Dispo");
-});
+// ******************************************************** //
+// Sidebar Filter                                           //
+// ******************************************************** //
 
-// Filterung auf Tools im Bereich "Sonderprozesse"
-document.getElementById("btn_sonderprozesse").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
-  tool_cards_laden("Sonderprozesse");
-});
+document.getElementById("btn_gh_dispo_tools").addEventListener("click", () => tool_cards_laden("GH_Dispo"));
+document.getElementById("btn_sonderprozesse").addEventListener("click", () => tool_cards_laden("Sonderprozesse"));
+document.getElementById("btn_organisation").addEventListener("click", () => tool_cards_laden("Organisation"));
+document.getElementById("btn_Auswertungen").addEventListener("click", () => tool_cards_laden("Auswertungen"));
+document.getElementById("btn_mail").addEventListener("click", () => tool_cards_laden("Mailing"));
+document.getElementById("btn_favoriten").addEventListener("click", () => tool_cards_laden("__FAVORITES__"));
 
-// Filterung auf Tools im Bereich "Organisation"
-document.getElementById("btn_organisation").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
-  tool_cards_laden("Organisation");
-});
-
-// Filterung auf Tools im Bereich "Auswertungen"
-document.getElementById("btn_Auswertungen").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
-  tool_cards_laden("Auswertungen");
-});
-
-// Filterung auf Tools im Bereich "Mailing"
-document.getElementById("btn_mail").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
-  tool_cards_laden("Mailing");
-});
-
-// Der Button der die Volltextsuche ausführt
+// Suche
 document.getElementById("btn_suche").addEventListener("click", () => {
-  const grid = document.querySelector(".card-grid");
-  grid.innerHTML = "";
   const filter = document.getElementById("T_suche").value;
   tools_dursuchen(filter);
 });
 
-// Tool öffnen (direkt)
+// ******************************************************** //
+// Helpers                                                  //
+// ******************************************************** //
+
+function toast(icon, title) {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "bottom-end",
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true,
+    didOpen: (t) => { t.onmouseenter = Swal.stopTimer; t.onmouseleave = Swal.resumeTimer; }
+  });
+  Toast.fire({ icon, title });
+}
+
+// Tool öffnen
 function tool_offnen(id) {
   window.electron.tool_oeffnen(id);
 }
@@ -131,7 +104,98 @@ async function username_holen() {
   document.getElementById("username").innerText = username;
 }
 
-/* ===================== Detail-Modal-Helfer ===================== */
+// Warten
+function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+// Abmelden
+async function abmelden() {
+  toast('info', 'Du wirst nun abgemeldet');
+  await wait(4000);
+  window.electron.abmelden();
+}
+
+// SAP-Verbindung testen
+async function sap_verbindung_test() {
+  const ergebnis = window.electron.sap_verbindung_testen();
+  if (ergebnis.success) toast('success', 'SAP-Verbindung erfolgreich hergestellt');
+  else toast('error', 'Keine Verbindung zu SAP möglich');
+}
+
+// Speicher leeren
+async function speicher_bereinigen() {
+  await window.electron.tools_ordner_leeren();
+  toast('success', 'Speicher erfolgreich bereinigt');
+}
+
+// ******************************************************** //
+// Favoriten-Logik (pro Windows-User)                      //
+// ******************************************************** //
+
+let _cachedUser = null;
+
+async function getCurrentUserLower() {
+  if (_cachedUser) return _cachedUser;
+  const u = (await window.electron.username()) || '';
+  _cachedUser = String(u).toLowerCase();
+  return _cachedUser;
+}
+
+async function getFavKey() {
+  const user = await getCurrentUserLower();
+  return `wfm_favs_${user}`;
+}
+
+async function favs_laden() {
+  const key = await getFavKey();
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch { return []; }
+}
+
+async function favs_speichern(ids) {
+  const key = await getFavKey();
+  localStorage.setItem(key, JSON.stringify([...new Set(ids)]));
+}
+
+async function is_fav(id) {
+  const favs = await favs_laden();
+  return favs.includes(id);
+}
+
+async function fav_toggle(id) {
+  const favs = await favs_laden();
+  const idx = favs.indexOf(id);
+  if (idx >= 0) { favs.splice(idx, 1); await favs_speichern(favs); return false; }
+  favs.push(id); await favs_speichern(favs); return true;
+}
+
+// UI-Helfer: Star-Icon aktualisieren
+function set_star_btn_state(btn, active) {
+  const icon = btn.querySelector('i');
+  if (!icon) return;
+  if (active) {
+    icon.classList.remove('bi-star');
+    icon.classList.add('bi-star-fill');
+    btn.classList.add('active');
+    btn.title = 'Aus Favoriten entfernen';
+  } else {
+    icon.classList.remove('bi-star-fill');
+    icon.classList.add('bi-star');
+    btn.classList.remove('active');
+    btn.title = 'Zu Favoriten';
+  }
+}
+
+// Wird vom Button in der Card aufgerufen
+async function toggle_favorite_ui(btn, id) {
+  const neu = await fav_toggle(id);
+  set_star_btn_state(btn, neu);
+  toast('success', neu ? 'Zu Favoriten hinzugefügt' : 'Aus Favoriten entfernt');
+}
+
+// ******************************************************** //
+// Detail-Modal                                             //
+// ******************************************************** //
 
 const detailModalEl = document.getElementById('toolDetailModal');
 const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
@@ -143,26 +207,37 @@ function fillToolDetailModal(data) {
   document.getElementById('td_art').textContent = data.toolart || '';
 
   // Placeholder-Felder
-  document.getElementById('td_version').textContent   = data.version   || '-';
-  document.getElementById('td_entwickler').textContent= data.entwickler|| '-';
-  document.getElementById('td_veroeff').textContent   = data.veroeff   || '-';
-  document.getElementById('td_update').textContent    = data.update    || '-';
+  document.getElementById('td_version').textContent    = data.version     || '-';
+  document.getElementById('td_entwickler').textContent = data.entwickler  || '-';
+  document.getElementById('td_veroeff').textContent    = data.veroeff     || '-';
+  document.getElementById('td_update').textContent     = data.update      || '-';
 
   // Buttons
   const btnOpen = document.getElementById('td_btn_open');
   const btnOpenDir = document.getElementById('td_btn_open_dir');
+  const btnFav = document.getElementById('td_btn_fav');
 
-  btnOpen.onclick = () => {
-    detailModal?.hide();
-    tool_offnen(data.id);
-  };
+  btnOpen.onclick = () => { detailModal?.hide(); tool_offnen(data.id); };
+  btnOpenDir.onclick = async () => { try { await window.electron.dir_laden(data.id); } catch(e) { console.error(e); } };
 
-  btnOpenDir.onclick = async () => {
-    try { await window.electron.dir_laden(data.id); } 
-    catch (e) { console.error(e); }
+  // Favorit-Status im Modal anzeigen
+  (async () => {
+    const fav = await is_fav(data.id);
+    const icon = btnFav.querySelector('i');
+    if (fav) { icon.classList.remove('bi-star'); icon.classList.add('bi-star-fill'); btnFav.classList.add('active'); btnFav.textContent = ''; btnFav.insertAdjacentHTML('afterbegin','<i class="bi bi-star-fill"></i> Favorit'); }
+    else { icon.classList.remove('bi-star-fill'); icon.classList.add('bi-star'); btnFav.classList.remove('active'); btnFav.textContent = ''; btnFav.insertAdjacentHTML('afterbegin','<i class="bi bi-star"></i> Favorit'); }
+  })();
+
+  btnFav.onclick = async () => {
+    const neu = await fav_toggle(data.id);
+    const icon = btnFav.querySelector('i');
+    if (neu) { icon.classList.remove('bi-star'); icon.classList.add('bi-star-fill'); btnFav.classList.add('active'); toast('success','Zu Favoriten hinzugefügt'); }
+    else { icon.classList.remove('bi-star-fill'); icon.classList.add('bi-star'); btnFav.classList.remove('active'); toast('success','Aus Favoriten entfernt'); }
+    // Cards evtl. aktualisieren, falls Favoriten-Filter aktiv ist
+    const aktiverFavoritenFilter = document.querySelector('#btn_favoriten.active');
+    if (aktiverFavoritenFilter) tool_cards_laden('__FAVORITES__');
   };
 }
-
 
 function readToolDataFromCard(cardEl) {
   return {
@@ -170,22 +245,36 @@ function readToolDataFromCard(cardEl) {
     toolname: cardEl.getAttribute('data-tool-name') || cardEl.querySelector('.tool-title')?.textContent?.trim(),
     toolbeschreibung: cardEl.getAttribute('data-tool-desc') || cardEl.querySelector('.tool-desc')?.textContent?.trim(),
     toolpfad: cardEl.getAttribute('data-tool-path') || '',
-    toolart: cardEl.getAttribute('data-tool-art') || ''
+    toolart: cardEl.getAttribute('data-tool-art') || '',
+    // Platzhalter – falls du später echte Werte mitlieferst:
+    version: cardEl.getAttribute('data-tool-version') || '',
+    entwickler: cardEl.getAttribute('data-tool-dev') || '',
+    veroeff: cardEl.getAttribute('data-tool-published') || '',
+    update: cardEl.getAttribute('data-tool-updated') || ''
   };
 }
 
-/* ===================== Cards laden & Klick-Verhalten ===================== */
+// ******************************************************** //
+// Cards laden & Klick-Verhalten                            //
+// ******************************************************** //
 
-// Tools laden
 async function tool_cards_laden(filter) {
-  let daten = await window.electron.tools_laden(filter);
-  if (!Array.isArray(daten) || daten.length === 0) {
-    document.querySelector(".card-grid").innerHTML = "";
-    return;
-  }
-
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
+
+  let daten = await window.electron.tools_laden(filter && filter !== "__FAVORITES__" ? filter : undefined);
+  if (!Array.isArray(daten)) daten = [];
+
+  // Favoritenfilter anwenden (Frontend, pro User)
+  if (filter === "__FAVORITES__") {
+    const favs = await favs_laden();
+    daten = daten.filter(t => favs.includes(String(t.id)));
+    document.getElementById('btn_favoriten').classList.add('active');
+  } else {
+    document.getElementById('btn_favoriten').classList.remove('active');
+  }
+
+  if (daten.length === 0) return;
 
   daten.forEach((tool, index) => {
     const cardHTML = `
@@ -201,33 +290,37 @@ async function tool_cards_laden(filter) {
           <h6 class="tool-title mb-1">${tool.toolname}</h6>
           <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
         </div>
-
-        <div class="card-footer bg-transparent">
-          <div class="tool-meta text-muted small"></div>
+        <div class="card-footer bg-transparent d-flex gap-2 justify-content-end">
+          <button class="btn btn-light tool-fav-btn" 
+                  onclick="event.stopPropagation(); toggle_favorite_ui(this, '${tool.id}')"
+                  aria-label="Favorit" title="Zu Favoriten">
+            <i class="bi bi-star"></i>
+          </button>
           <button class="btn btn-light tool-open-btn"
                   onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
-                  aria-label="Öffnen">
+                  aria-label="Öffnen" title="Tool öffnen">
             <i class="bi bi-arrow-up-right"></i>
           </button>
         </div>
       </div>
     `;
-    setTimeout(() => {
+    setTimeout(async () => {
       const tpl = document.createElement("template");
       tpl.innerHTML = cardHTML.trim();
       const el = tpl.content.firstElementChild;
 
-      // Entry-Animation
       el.classList.add("appear");
       grid.appendChild(el);
-      el.addEventListener("animationend", () => {
-        el.classList.remove("appear");
-      }, { once: true });
+      el.addEventListener("animationend", () => el.classList.remove("appear"), { once: true });
 
-      // Linksklick auf die Card -> Detail-Modal
+      // Favoriten-Icon initialer Zustand
+      const favBtn = el.querySelector('.tool-fav-btn');
+      const fav = await is_fav(String(tool.id));
+      set_star_btn_state(favBtn, fav);
+
+      // Linksklick -> Detail-Modal
       el.addEventListener('click', async () => {
         const data = readToolDataFromCard(el);
-        // Optional: falls Pfad/Art fehlen, Details nachladen
         if ((!data.toolpfad || !data.toolart) && window.electron?.tool_details) {
           try {
             const more = await window.electron.tool_details(data.id);
@@ -260,20 +353,17 @@ async function tool_cards_laden(filter) {
         }
       });
 
-    }, index * 100);
+    }, index * 80);
   });
 }
 
-// Funktione zum laden der Tools für die Volltextsuche
+// Volltextsuche
 async function tools_dursuchen(filter) {
-  let daten = await window.electron.tools_dursuchen(filter);
-  if (!Array.isArray(daten) || daten.length === 0) {
-    document.querySelector(".card-grid").innerHTML = "";
-    return;
-  }
-
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
+
+  let daten = await window.electron.tools_dursuchen(filter);
+  if (!Array.isArray(daten) || daten.length === 0) return;
 
   daten.forEach((tool, index) => {
     const cardHTML = `
@@ -289,23 +379,32 @@ async function tools_dursuchen(filter) {
           <h6 class="tool-title mb-1">${tool.toolname}</h6>
           <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
         </div>
-        <div class="card-footer bg-transparent">
-          <div class="tool-meta text-muted small"></div>
+        <div class="card-footer bg-transparent d-flex gap-2 justify-content-end">
+          <button class="btn btn-light tool-fav-btn" 
+                  onclick="event.stopPropagation(); toggle_favorite_ui(this, '${tool.id}')"
+                  aria-label="Favorit" title="Zu Favoriten">
+            <i class="bi bi-star"></i>
+          </button>
           <button class="btn btn-light tool-open-btn"
                   onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
-                  aria-label="Öffnen">
+                  aria-label="Öffnen" title="Tool öffnen">
             <i class="bi bi-arrow-up-right"></i>
           </button>
         </div>
       </div>
     `;
-    setTimeout(() => {
+    setTimeout(async () => {
       const tpl = document.createElement("template");
       tpl.innerHTML = cardHTML.trim();
       const el = tpl.content.firstElementChild;
       el.classList.add("appear");
       grid.appendChild(el);
       el.addEventListener("animationend", () => el.classList.remove("appear"), { once: true });
+
+      // Favoriten-Icon initial
+      const favBtn = el.querySelector('.tool-fav-btn');
+      const fav = await is_fav(String(tool.id));
+      set_star_btn_state(favBtn, fav);
 
       // Linksklick -> Detail-Modal
       el.addEventListener('click', async () => {
@@ -342,97 +441,14 @@ async function tools_dursuchen(filter) {
         }
       });
 
-    }, index * 100);
+    }, index * 80);
   });
 }
 
-// Funktion zum löschen der Tools im Userordner
-async function speicher_bereinigen() {
-  await window.electron.tools_ordner_leeren();
-  const Toast = Swal.mixin({
-    toast: true,
-    position: "bottom-end",
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
-  Toast.fire({
-    icon: "success",
-    title: "Speicher erfolgreich bereinigt"
-  });
-}
+// ******************************************************** //
+// Kontextmenü                                              //
+// ******************************************************** //
 
-// Funktion zum warten
-function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Funktion zum schließen der App
-async function abmelden() {
-  const Toast = Swal.mixin({
-    toast: true,
-    position: "bottom-end",
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    didOpen: (toast) => {
-      toast.onmouseenter = Swal.stopTimer;
-      toast.onmouseleave = Swal.resumeTimer;
-    }
-  });
-  Toast.fire({
-    icon: "info",
-    title: "Du wirst nun abgemeldet"
-  });
-
-  await wait(4000);
-  window.electron.abmelden();
-}
-
-// Funktion für den Test der SAP-Verbindung
-async function sap_verbindung_test() {
-  const ergebnis = window.electron.sap_verbindung_testen();
-
-  if (ergebnis.success) {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      }
-    });
-    Toast.fire({
-      icon: "success",
-      title: "SAP-Verbindung erfolgreich hergestellt"
-    });
-  } else {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      }
-    });
-    Toast.fire({
-      icon: "error",
-      title: "Keine Verbindung zu SAP möglich"
-    });
-  }
-}
-
-/* ===================== Kontextmenü-Controller ===================== */
 (function initContextMenuLoader() {
   const init = () => {
     const menu = document.getElementById('toolContextMenu');
@@ -481,7 +497,6 @@ async function sap_verbindung_test() {
     });
 
     function showMenuAt(clientX, clientY) {
-      // temporär sichtbar machen, um Größe zu ermitteln
       menu.style.visibility = 'hidden';
       menu.setAttribute('aria-hidden', 'false');
 
@@ -499,13 +514,10 @@ async function sap_verbindung_test() {
       menu.style.left = `${left}px`;
       menu.style.top  = `${top}px`;
 
-      // kleinen Pfeil (Arrow) zur Klickposition ausrichten
       const tip = Math.max(12, Math.min((clientX - left), mw - 12));
       menu.style.setProperty('--tip-x', tip + 'px');
 
       menu.style.visibility = 'visible';
-
-      // Fokus fürs Keyboard
       menu.querySelector('.item')?.focus({ preventScroll: true });
     }
 
@@ -513,7 +525,6 @@ async function sap_verbindung_test() {
       menu.setAttribute('aria-hidden', 'true');
     }
 
-    // Business-Logik für Aktionen (Backend hooks optional)
     async function runAction(action, toolId) {
       switch (action) {
         case 'open':
@@ -522,22 +533,25 @@ async function sap_verbindung_test() {
 
         case 'open_dir': {
           const res = await window.electron.dir_laden(toolId);
-          if (res?.success) {
-            tool_cards_laden();
-          } else {
-            console.error("Ordner konnte nicht geöffnet werden:", res?.message);
-          }
+          if (!res?.success) console.error("Ordner konnte nicht geöffnet werden:", res?.message);
           break;
         }
 
-        case 'pin':
-          if (window.electron?.tool_pin_toggle) {
-            const ok = await window.electron.tool_pin_toggle(toolId);
-            if (ok) tool_cards_laden();
-          } else {
-            console.log('[pin]', toolId);
+        case 'fav_toggle': {
+          // Favorit toggeln und UI ggf. aktualisieren
+          const neu = await fav_toggle(String(toolId));
+          toast('success', neu ? 'Zu Favoriten hinzugefügt' : 'Aus Favoriten entfernt');
+          // Wenn Favoritenfilter aktiv, neu laden
+          const aktiverFavoritenFilter = document.querySelector('#btn_favoriten.active');
+          if (aktiverFavoritenFilter) tool_cards_laden('__FAVORITES__');
+          else {
+            // Sonst nur Icon an der betreffenden Card umschalten
+            const card = document.querySelector(`.tool-card[data-tool-id="${CSS.escape(toolId)}"]`);
+            const starBtn = card?.querySelector('.tool-fav-btn');
+            if (starBtn) set_star_btn_state(starBtn, neu);
           }
           break;
+        }
 
         case 'delete':
           try {
@@ -563,7 +577,7 @@ async function sap_verbindung_test() {
               console.log('[delete]', toolId);
             }
           } catch (err) {
-            await Swal.fire({ icon: 'error', title: 'Fehler', text: String(err) });
+            await Swal.fire({ icon:'error', title:'Fehler', text:String(err) });
           }
           break;
       }
@@ -577,29 +591,18 @@ async function sap_verbindung_test() {
   }
 })();
 
+// ******************************************************** //
+// Berechtigungsprüfung                                     //
+// ******************************************************** //
+
 async function berechtigung_pruefen() {
   let user = await window.electron.username();
   user = user.toLowerCase();
-  const developer = ["leons", "leon.stolz", "max.wandt", "roman.ensel", "jasmin.huber"];
+  const developer = ["leons","leon.stolz","max.wandt","roman.ensel","jasmin.huber"];
 
   if (!developer.includes(user)) {
-    const Toast = Swal.mixin({
-      toast: true,
-      position: "bottom-end",
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.onmouseenter = Swal.stopTimer;
-        toast.onmouseleave = Swal.resumeTimer;
-      }
-    });
-    Toast.fire({
-      icon: "error",
-      title: "Keine Berechtigung für diesen Vorgang"
-    });
+    toast('error', 'Keine Berechtigung für diesen Vorgang');
   } else {
-    // Modal nur öffnen, wenn Berechtigung vorhanden
     const myModal = new bootstrap.Modal(document.getElementById("toolModal"));
     myModal.show();
   }

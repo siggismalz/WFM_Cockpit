@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- ======================================= Abhängigkeiten ===================================================== -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="index.css" />
   <!--==============================================================================================================-->
 
   <title>WFM Cockpit</title>
@@ -16,32 +16,29 @@
 
 <body>
 
-<!-- Navbar (der obere Bereich der App) -->
+<!-- Navbar -->
 <nav class="navbar bg-body-tertiary">
   <div class="container-fluid d-flex align-items-center justify-content-between">
 
-    <!-- Icon inklusive App-Titel -->
     <div class="align-items-center d-flex">
       <img onclick="tool_cards_laden();" class="img-fluid ms-3" src="../assets/icon.png" style="height: 30px;">
-      <span onclick="tool_cards_laden();" class="navbar-brand ms-4" 
-      style="cursor: pointer; font-family: Verdana, Geneva, Tahoma, sans-serif;">WFM Cockpit</span>
+      <span onclick="tool_cards_laden();" class="navbar-brand ms-4"
+            style="cursor: pointer; font-family: Verdana, Geneva, Tahoma, sans-serif;">WFM Cockpit</span>
     </div>
 
     <div class="d-flex align-items-center">
-      <!-- Suchfunktionalität (Volltextsuche)-->
       <input id="T_suche" class="form-control" placeholder="Tools suchen" type="text" style="width: 15rem;">
       <button id="btn_suche" class="btn border-0" style="margin-right: 3rem;">
         <i class="bi bi-search"></i>
       </button>
 
       <div class="dropdown me-2">
-        <!-- Profilsektion -->
-        <button class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center" 
-                type="button" id="profilDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;">
+        <button class="btn btn-outline-dark rounded-circle d-flex align-items-center justify-content-center"
+                type="button" id="profilDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                style="width: 32px; height: 32px;">
           <i class="bi bi-person-fill fs-6"></i>
         </button>
 
-        <!-- Dropdownfeld für "Profilfunktionen" -->
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profilDropdown">
           <li><button class="dropdown-item" onclick="speicher_bereinigen()">Speicher bereinigen</button></li>
           <li><button class="dropdown-item" onclick="sap_verbindung_test()">SAP-Verbindung testen</button></li>
@@ -50,49 +47,50 @@
         </ul>
       </div>
 
-      <!-- Vorname und Nachname des Users (wird beim starten der App ermittelt) -->
       <span id="username" class="text-black">Vorname Nachname</span>
     </div>
   </div>
 </nav>
 
-
-  <!-- Sidebar links -->
+<!-- Sidebar -->
+<div class="sidebar d-flex flex-column">
   <!-- Oberer Bereich -->
-  <div class="sidebar d-flex flex-column">
-    <button id="btn_gh_dispo_tools" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Aufgabenliste GH-Dispo">
-      <i class="bi bi-list-task"></i>
-    </button>
-    <button id="btn_sonderprozesse" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Sonderprozesse">
-      <i class="bi bi-stars"></i>
-    </button>
-    <button id="btn_organisation" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Organisation">
-      <i class="bi bi-people-fill"></i>
-    </button>
-    <button id="btn_Auswertungen" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Auswertungen">
-      <i class="bi bi-file-bar-graph-fill"></i>
-    </button>
-    <button id="btn_mail" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
-      <i class="bi bi-envelope-fill"></i>
-    </button>
-    <!-- Unterer Bereich -->
-    <div class="mt-auto">
-<button id="btn_open_modal" class="btn d-block fs-4 mb-1 w-100" onclick="berechtigung_pruefen();">
-  <i class="bi bi-plus-circle-fill"></i>
-</button>
+  <button id="btn_gh_dispo_tools" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Aufgabenliste GH-Dispo">
+    <i class="bi bi-list-task"></i>
+  </button>
+  <button id="btn_sonderprozesse" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Sonderprozesse">
+    <i class="bi bi-stars"></i>
+  </button>
+  <button id="btn_organisation" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Organisation">
+    <i class="bi bi-people-fill"></i>
+  </button>
+  <button id="btn_Auswertungen" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Auswertungen">
+    <i class="bi bi-file-bar-graph-fill"></i>
+  </button>
+  <button id="btn_mail" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Mailing">
+    <i class="bi bi-envelope-fill"></i>
+  </button>
 
-    </div>
+  <!-- Favoriten-Filter -->
+  <button id="btn_favoriten" class="d-block fs-4 mb-1 w-100 btn border-0" data-bs-toggle="tooltip" title="Favoriten">
+    <i class="bi bi-star-fill"></i>
+  </button>
+
+  <!-- Unterer Bereich -->
+  <div class="mt-auto">
+    <button id="btn_open_modal" class="btn d-block fs-4 mb-1 w-100" onclick="berechtigung_pruefen();">
+      <i class="bi bi-plus-circle-fill"></i>
+    </button>
   </div>
-  
-  <!-- Hauptbereich mit 5x4 Cards -->
-  <div class="main-content">
+</div>
 
-    <div class="card-grid">
-    </div>
+<!-- Hauptbereich -->
+<div class="main-content">
+  <div class="card-grid"></div>
+</div>
 
-  </div>
-
-  <div id="toolContextMenu" role="menu" aria-hidden="true">
+<!-- Kontextmenü -->
+<div id="toolContextMenu" role="menu" aria-hidden="true">
   <button type="button" class="item" data-action="open">
     <i class="bi bi-box-arrow-up-right"></i> Öffnen
   </button>
@@ -100,15 +98,66 @@
     <i class="bi bi-folder"></i> Original Pfad öffnen
   </button>
   <hr>
-  <button type="button" class="item" data-action="pin">
-    <i class="bi bi-pin-angle"></i> Anpinnen
+  <button type="button" class="item" data-action="fav_toggle">
+    <i class="bi bi-star"></i> Favorit umschalten
   </button>
   <button type="button" class="item danger" data-action="delete">
     <i class="bi bi-trash"></i> Löschen
   </button>
 </div>
 
-<!-- Detail-Modal: Tool-Infos anzeigen -->
+<!-- Modal: Neues Tool hinzufügen -->
+<div class="modal fade" id="toolModal" tabindex="-1" aria-labelledby="toolModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="toolForm" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title" id="toolModalLabel">Neues Tool hinzufügen</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="toolname" class="form-label">Toolname</label>
+            <input type="text" class="form-control" id="toolname" name="toolname" maxlength="50" required>
+            <div class="invalid-feedback">Bitte einen Toolnamen (max. 50 Zeichen) eingeben.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="toolbeschreibung" class="form-label">Toolbeschreibung</label>
+            <textarea class="form-control" id="toolbeschreibung" name="toolbeschreibung" maxlength="50" required></textarea>
+            <div class="invalid-feedback">Bitte eine Beschreibung (max. 50 Zeichen) eingeben.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="toolpfad" class="form-label">Toolpfad</label>
+            <input type="text" class="form-control" id="toolpfad" name="toolpfad" maxlength="250" required>
+            <div class="invalid-feedback">Bitte einen Pfad (max. 250 Zeichen) angeben.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="toolart" class="form-label">Toolart</label>
+            <input list="toolart-options" class="form-control" id="toolart" name="toolart" maxlength="50" required>
+            <datalist id="toolart-options">
+              <option value="GH_Dispo">
+              <option value="Sonderprozesse">
+              <option value="Organisation">
+              <option value="Auswertungen">
+              <option value="Mailing">
+            </datalist>
+            <div class="invalid-feedback">Bitte die Toolart angeben (max. 50 Zeichen).</div>
+          </div>
+
+          <div id="toolFormError" class="alert alert-danger d-none" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Tool-Details -->
 <div class="modal fade" id="toolDetailModal" tabindex="-1" aria-labelledby="toolDetailModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -120,25 +169,21 @@
       </div>
 
       <div class="modal-body">
-        <!-- Toolname -->
         <div class="mb-3">
           <label class="form-label fw-semibold text-muted small">Name</label>
           <div id="td_name" class="fs-6 fw-bold"></div>
         </div>
 
-        <!-- Beschreibung -->
         <div class="mb-3">
           <label class="form-label fw-semibold text-muted small">Beschreibung</label>
-          <div id="td_beschreibung" class="border rounded p-2 bg-light" style="min-height:100px;"></div>
+          <div id="td_beschreibung" class="border rounded p-2 bg-light" style="min-height:120px;"></div>
         </div>
 
         <div class="row">
-          <!-- Pfad -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Pfad</label>
             <code id="td_pfad" class="d-block text-truncate"></code>
           </div>
-          <!-- Toolart -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Toolart</label>
             <div id="td_art"></div>
@@ -148,12 +193,10 @@
         <hr />
 
         <div class="row">
-          <!-- Version -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Version</label>
             <div id="td_version" class="text-secondary">-</div>
           </div>
-          <!-- Entwickler -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Entwickler</label>
             <div id="td_entwickler" class="text-secondary">-</div>
@@ -161,12 +204,10 @@
         </div>
 
         <div class="row">
-          <!-- Veröffentlichungsdatum -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Veröffentlichungsdatum</label>
             <div id="td_veroeff" class="text-secondary">-</div>
           </div>
-          <!-- Letztes Aktualisierungsdatum -->
           <div class="col-md-6 mb-3">
             <label class="form-label fw-semibold text-muted small">Letztes Update</label>
             <div id="td_update" class="text-secondary">-</div>
@@ -175,6 +216,9 @@
       </div>
 
       <div class="modal-footer">
+        <button id="td_btn_fav" type="button" class="btn btn-outline-warning">
+          <i class="bi bi-star"></i> Favorit
+        </button>
         <button id="td_btn_open_dir" type="button" class="btn btn-outline-primary">
           <i class="bi bi-folder"></i> Original Pfad öffnen
         </button>
@@ -187,71 +231,8 @@
   </div>
 </div>
 
-
-
-
-  <!-- Modal -->
-  <div class="modal fade" id="toolModal" tabindex="-1" aria-labelledby="toolModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="toolForm" novalidate>
-          <div class="modal-header">
-            <h5 class="modal-title" id="toolModalLabel">Neues Tool hinzufügen</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
-          </div>
-          <div class="modal-body">
-
-            <!-- Toolname -->
-            <div class="mb-3">
-              <label for="toolname" class="form-label">Toolname</label>
-              <input type="text" class="form-control" id="toolname" name="toolname" maxlength="50" required>
-              <div class="invalid-feedback">Bitte einen Toolnamen (max. 50 Zeichen) eingeben.</div>
-            </div>
-
-            <!-- Toolbeschreibung (textarea) -->
-            <div class="mb-3">
-              <label for="toolbeschreibung" class="form-label">Toolbeschreibung</label>
-              <textarea class="form-control" id="toolbeschreibung" name="toolbeschreibung" maxlength="50" required></textarea>
-              <div class="invalid-feedback">Bitte eine Beschreibung (max. 50 Zeichen) eingeben.</div>
-            </div>
-
-            <!-- Toolpfad -->
-            <div class="mb-3">
-              <label for="toolpfad" class="form-label">Toolpfad</label>
-              <input type="text" class="form-control" id="toolpfad" name="toolpfad" maxlength="250" required>
-              <div class="invalid-feedback">Bitte einen Pfad (max. 250 Zeichen) angeben.</div>
-            </div>
-
-            <!-- Toolart -->
-              <div class="mb-3">
-                <label for="toolart" class="form-label">Toolart</label>
-                <input list="toolart-options" class="form-control" id="toolart" name="toolart" maxlength="50" required>
-                <datalist id="toolart-options">
-                  <option value="GH_Dispo">
-                  <option value="Sonderprozesse">
-                  <option value="Organisation">
-                  <option value="Auswertungen">
-                  <option value="Mailing">
-                </datalist>
-                <div class="invalid-feedback">
-                  Bitte die Toolart angeben (max. 50 Zeichen).
-                </div>
-              </div>
-
-
-            <!-- Platz für Fehlermeldung vom Backend -->
-            <div id="toolFormError" class="alert alert-danger d-none" role="alert"></div>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
-            <button type="submit" class="btn btn-primary">Speichern</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="index.js"></script>
+<!-- Libs -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="index.js"></script>
 </body>
 </html>

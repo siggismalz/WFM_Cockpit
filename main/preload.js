@@ -12,5 +12,9 @@ contextBridge.exposeInMainWorld("electron",{
   abmelden: () => ipcRenderer.invoke("abmelden"),
   sap_verbindung_testen: () => ipcRenderer.invoke("sap_verbindung_testen"),
   tool_loeschen: (toolid) => ipcRenderer.invoke("tool_loeschen",(toolid)),
-  dir_laden: (toolId) => ipcRenderer.invoke("dir_laden", toolId)
+  dir_laden: (toolId) => ipcRenderer.invoke("dir_laden", toolId),
+  favs_get: () => ipcRenderer.invoke("favs_get"),
+  fav_toggle: (id) => ipcRenderer.invoke("fav_toggle", id),
+  is_fav: (id) => ipcRenderer.invoke("is_fav", id),
+  favs_set: (ids) => ipcRenderer.invoke("favs_set", ids),
 });

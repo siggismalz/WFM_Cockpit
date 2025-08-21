@@ -1,7 +1,7 @@
 // ***************************** //
 // Importe und Verbindlichkeiten //
 // ----------------------------- //
-const {app,BrowserWindow,ipcMain,dialog,shell} = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const os = require("os");
 const odbc = require("odbc");
@@ -9,7 +9,6 @@ const fs = require("fs");
 const winax = require("winax");
 
 // Globale Datenbankverbindung
-// Die Verbindung wird für die ganze App-Laufzeit aufrecht gehalten
 let verbindung;
 
 // *************************** //
@@ -23,19 +22,18 @@ const mainwindow_erstellen = () => {
     height: 800,
     width: 1350,
     webPreferences: {
-      preload: path.join(__dirname,"preload.js"),
+      preload: path.join(__dirname, "preload.js"),
       allowRunningInsecureContent: false,
       nodeIntegration: true
     },
     title: "WFM Cockpit",
-    icon: path.join(__dirname,"..","assets","icon.ico")
+    icon: path.join(__dirname, "..", "assets", "icon.ico")
   });
 
-  mainwindow.loadFile(path.join(__dirname,"..","renderer","index.html"))
+  mainwindow.loadFile(path.join(__dirname, "..", "renderer", "index.html"))
 };
 
-// Splashscreen für den Appstart
-// !ToDo: Eventuell validierungsfunktionen einfügen für einen echten Health-Check
+// Splashscreen für den Appstart (optional)
 let splashscreen;
 const splashscreen_erstellen = () => {
   splashscreen = new BrowserWindow({
@@ -49,7 +47,7 @@ const splashscreen_erstellen = () => {
     skipTaskbar: true,
     center: true
   });
-  splashscreen.loadFile(path.join(__dirname,"..","renderer","splash.html"));
+  splashscreen.loadFile(path.join(__dirname, "..", "renderer", "splash.html"));
 };
 
 // ************************************************ //
@@ -57,66 +55,58 @@ const splashscreen_erstellen = () => {
 // ------------------------------------------------ //
 
 // username wird ermittelt
-ipcMain.handle("username",() => {
+ipcMain.handle("username", () => {
   let username = os.userInfo().username;
   return username;
 });
 
 // Die Tools werden von der Datenbank abgerufen
-// Wenn der Parameter "filter" nicht mitgegeben wurde, dann wird der where-Filter
-// im SQL-String auf 1=1 (true) gesetzt
-ipcMain.handle("tools_laden", async (event,filter) => {
+ipcMain.handle("tools_laden", async (event, filter) => {
   try {
-    
     let where_filter = " 1 = 1";
-    if(filter && filter.trim() !== ""){
-      where_filter = ` toolart = '${filter}'` 
-    };
+    if (filter && String(filter).trim() !== "") {
+      where_filter = ` toolart = '${filter}'`;
+    }
 
-    const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`
+    const sql_string = `Select * from T_WFM_Cockpit where ${where_filter}`;
     const daten = await verbindung.query(sql_string);
-
     return daten;
 
-    } catch (err) {
-
-      dialog.showMessageBox(mainwindow,{
-        type: "error",
-        title: "Fehler beim verbinden zur Datenbank",
-        message: "Datenbankverbindung konnte nicht hergestellt werden.\n" + err,
-        buttons: ['OK']
-      });
-      throw err;
+  } catch (err) {
+    dialog.showMessageBox(mainwindow, {
+      type: "error",
+      title: "Fehler beim verbinden zur Datenbank",
+      message: "Datenbankverbindung konnte nicht hergestellt werden.\n" + err,
+      buttons: ['OK']
+    });
+    throw err;
   }
 });
 
-// Ähnliche Funktion wie "tools_laden". Aber diese Funktion hier ist für die Volltext-Suche im Tool ausgelegt
-// Wenn der "filter"-Parameter mitgegeben wird, dann werden jegliche Spalten anhand von wildcards durchsucht.
-// Die Ergebnisse werden dann im Tool zurückgegeben
-ipcMain.handle("tools_dursuchen", async (event,filter) => {
+// Volltext-Suche
+ipcMain.handle("tools_dursuchen", async (event, filter) => {
   try {
+    const f = (filter ?? "").replaceAll("'", "''");
     const sql_string = `
-    Select * from T_WFM_Cockpit 
-    where  toolname like '%${filter}%' 
-    or toolbeschreibung like '%${filter}%' 
-    or toolart like '%${filter}%'`;
+      Select * from T_WFM_Cockpit 
+      where  toolname like '%${f}%' 
+      or toolbeschreibung like '%${f}%' 
+      or toolart like '%${f}%'`;
 
     const daten = await verbindung.query(sql_string);
     return daten;
-  } catch(err){
-      dialog.showMessageBox(mainwindow,{
-        type: "error",
-        title: "Fehler beim verbinden zur Datenbank",
-        message: "Datenbankverbindung konnte nicht hergestellt werden.\n" + err,
-        buttons: ['OK']
-      });
-      throw err;
-  };
+  } catch (err) {
+    dialog.showMessageBox(mainwindow, {
+      type: "error",
+      title: "Fehler beim verbinden zur Datenbank",
+      message: "Datenbankverbindung konnte nicht hergestellt werden.\n" + err,
+      buttons: ['OK']
+    });
+    throw err;
+  }
 });
 
-// Funktionalität zum öffnen der Tools
-// Im Homedirectory des Users wird der Ordner "WFM-Cockpit" einmalig erstellt.
-// Die Tools werden anhand des id Parameters ermittelt. Das Tool wird in den Ordner kopiert und von dort aus geöffnet.
+// Tool öffnen: Datei in %HOMEPATH%\WFM-Cockpit kopieren & öffnen
 ipcMain.handle("tool_oeffnen", async (event, id) => {
   let daten = await verbindung.query(`SELECT toolpfad FROM T_WFM_Cockpit WHERE id = ${id}`);
   let pfad = daten[0]?.toolpfad;
@@ -130,7 +120,6 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
       fs.mkdirSync(zielordner, { recursive: true });
     }
 
-    // Zieldatei in diesem Ordner
     const zielpfad = path.join(zielordner, path.basename(pfad));
 
     try {
@@ -145,7 +134,7 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
   }
 });
 
-// Neue Tools, die ins Tool eingefügt werden sollen, werden über diese API in die Datenbank geschrieben
+// Neues Tool speichern
 ipcMain.handle("tool_speichern", async (_evt, t) => {
   try {
     const { toolname, toolbeschreibung, toolpfad, toolart } = t || {};
@@ -155,8 +144,6 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
     if (toolname.length > 50 || toolbeschreibung.length > 50 || toolart.length > 50 || toolpfad.length > 250) {
       throw new Error("Ein Feld überschreitet die maximale Länge.");
     }
-    const user = os.userInfo().username.toLowerCase();
-    
 
     await verbindung.query(
       "INSERT INTO T_WFM_Cockpit (toolname, toolbeschreibung, toolpfad, toolart) VALUES (?,?,?,?)",
@@ -169,14 +156,12 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
   }
 });
 
-// Der Ordner im Homedirectory wird geleert. Alle vorhandenen Tools darin werden gelöscht.
-// Keine Gefahr, da nur Userseitig
+// Arbeitsordner leeren
 ipcMain.handle("tools_ordner_leeren", async () => {
   const zielordner = path.join(os.homedir(), "WFM-Cockpit");
 
   try {
     if (fs.existsSync(zielordner)) {
-      // Alle Dateien im Ordner löschen
       for (const datei of fs.readdirSync(zielordner)) {
         const dateipfad = path.join(zielordner, datei);
         fs.rmSync(dateipfad, { recursive: true, force: true });
@@ -189,27 +174,28 @@ ipcMain.handle("tools_ordner_leeren", async () => {
   }
 });
 
-// Das Tool schließt sich
-ipcMain.handle("abmelden",() => {
+// App schließen
+ipcMain.handle("abmelden", () => {
   app.quit();
 });
 
-//SAP Verbindung wird getestet
-ipcMain.handle("sap_verbindung_testen",async () => {
+// SAP Verbindung testen
+ipcMain.handle("sap_verbindung_testen", async () => {
   const erfolg = await sap_verbindung();
   return erfolg;
 });
 
+// Tool löschen (nur Devs)
 ipcMain.handle("tool_loeschen", async (event, id) => {
   try {
     const user = os.userInfo().username.toLowerCase();
-    const developer = ["leons","leon.stolz","max.wandt","roman.ensel","jasmin.huber"]
+    const developer = ["leons", "leon.stolz", "max.wandt", "roman.ensel", "jasmin.huber"];
     if (developer.includes(user)) {
-      await verbindung.query(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`);
-      console.log(`DELETE FROM T_WFM_Cockpit WHERE ID = ${id}`)
+      await verbindung.query(`DELETE FROM T_WFM_COCKpit WHERE ID = ${id}`);
+      console.log(`DELETE FROM T_WFM_COCKpit WHERE ID = ${id}`);
       return { success: true, message: "erfolgreich gelöscht" };
     } else {
-      return {success: false, message: "Keine Berechtigung"}
+      return { success: false, message: "Keine Berechtigung" }
     }
 
   } catch (err) {
@@ -217,7 +203,8 @@ ipcMain.handle("tool_loeschen", async (event, id) => {
   }
 });
 
-ipcMain.handle("dir_laden",async (event,id) => {
+// Ordner des Tools öffnen
+ipcMain.handle("dir_laden", async (event, id) => {
   try {
     const sql = `Select toolpfad from T_WFM_Cockpit where id = ${id}`;
     const daten = await verbindung.query(sql);
@@ -235,19 +222,104 @@ ipcMain.handle("dir_laden",async (event,id) => {
   }
 });
 
+// *************************** //
+// Favoriten (Dateispeicher)    //
+// --------------------------- //
+
+// favorites.json liegt in %HOMEPATH%\WFM-Cockpit\favorites.json
+function getFavsFilePath() {
+  const base = path.join(os.homedir(), "WFM-Cockpit");
+  if (!fs.existsSync(base)) {
+    fs.mkdirSync(base, { recursive: true });
+  }
+  return path.join(base, "favorites.json");
+}
+
+function readFavsFileSafe() {
+  const file = getFavsFilePath();
+  try {
+    if (!fs.existsSync(file)) return {};
+    const raw = fs.readFileSync(file, "utf8");
+    const obj = JSON.parse(raw);
+    return (obj && typeof obj === "object") ? obj : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeFavsFileSafe(obj) {
+  const file = getFavsFilePath();
+  try {
+    fs.writeFileSync(file, JSON.stringify(obj, null, 2), "utf8");
+    return true;
+  } catch (e) {
+    console.error("[favorites] write error:", e);
+    return false;
+  }
+}
+
+// Liefert Liste der Favoriten-IDs für den aktuellen Windows-User
+ipcMain.handle("favs_get", async () => {
+  const user = os.userInfo().username.toLowerCase();
+  const all = readFavsFileSafe();
+  const arr = Array.isArray(all[user]) ? all[user] : [];
+  return arr.map(String);
+});
+
+// Prüft Favorit
+ipcMain.handle("is_fav", async (evt, id) => {
+  const user = os.userInfo().username.toLowerCase();
+  const all = readFavsFileSafe();
+  const arr = Array.isArray(all[user]) ? all[user] : [];
+  const set = new Set(arr.map(String));
+  return set.has(String(id));
+});
+
+// Toggle Favorit
+ipcMain.handle("fav_toggle", async (evt, id) => {
+  const user = os.userInfo().username.toLowerCase();
+  const all = readFavsFileSafe();
+  const arr = Array.isArray(all[user]) ? all[user] : [];
+  const set = new Set(arr.map(String));
+  const key = String(id);
+
+  let active;
+  if (set.has(key)) {
+    set.delete(key);
+    active = false;
+  } else {
+    set.add(key);
+    active = true;
+  }
+
+  all[user] = Array.from(set);
+  writeFavsFileSafe(all);
+
+  return { active, list: all[user] };
+});
+
+// Optional: Bulk setzen (falls du irgendwann brauchst)
+ipcMain.handle("favs_set", async (evt, ids) => {
+  const user = os.userInfo().username.toLowerCase();
+  const all = readFavsFileSafe();
+  const cleaned = Array.from(new Set((ids || []).map(String)));
+  all[user] = cleaned;
+  writeFavsFileSafe(all);
+  return cleaned;
+});
 
 // *************************** //
 // Allgemeine  Hilfsfunktionen //
 // --------------------------- //
 
-// Hier wird die Verbindung zur Datenbank aufgebaut
+// DB-Verbindung
 async function datenbank_verbindung() {
-  const verbindungszeichenfolge = "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
+  const verbindungszeichenfolge =
+    "DRIVER={ODBC Driver 18 for SQL Server};SERVER=SERVER;DATABASE=Testdata;Trusted_Connection=Yes;TrustServerCertificate=Yes;";
   verbindung = await odbc.connect(verbindungszeichenfolge);
 }
 
-// Hier prüfen wir ob eine Verbindung zu SAP-GUIXT möglich ist. 
-// Inkl. Rückmeldung über Erfolg oder Misserfolg
+// SAP-GUI Scripting Check
 async function sap_verbindung() {
   try {
     const com = new winax.Object("SapROTWr.SAPROTWrapper");
@@ -265,9 +337,7 @@ async function sap_verbindung() {
     if (anzahl_children === 0) {
       return { success: false, message: "Keine SAP Session gefunden" };
     }
-    // Wenn alles ok
     return { success: true, message: "SAP-Verbindung erfolgreich hergestellt", verbindung: sap_verbindung };
-
   } catch (err) {
     return { success: false, message: "Fehler: " + err.message };
   }
@@ -277,24 +347,20 @@ async function sap_verbindung() {
 // Allgemeine App-Ereignisse //
 // ------------------------- //
 
-// Event beim starten der APP
-app.on("ready",async () => {
+app.on("ready", async () => {
   await datenbank_verbindung();
-  //splashscreen_erstellen();
-  //setTimeout(() => {
-  //  splashscreen.close();
-  //  mainwindow_erstellen();
-  //},4000);
-mainwindow_erstellen();
+  // splashscreen_erstellen();
+  // setTimeout(() => {
+  //   splashscreen.close();
+  //   mainwindow_erstellen();
+  // }, 4000);
+  mainwindow_erstellen();
 });
 
-// Event beim beenden der APP
-app.on("quit",() => {
+app.on("quit", () => {
   app.quit();
 });
 
-// Event bevor die App beendet wird
-// Verbindung zum Server wird getrennt
-app.on("before-quit",async () => {
+app.on("before-quit", async () => {
   if (verbindung) await verbindung.close();
 });
