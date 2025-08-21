@@ -226,64 +226,101 @@ ipcMain.handle("dir_laden", async (event, id) => {
 // Favoriten (Dateispeicher)    //
 // --------------------------- //
 
-// favorites.json liegt in %HOMEPATH%\WFM-Cockpit\favorites.json
-function getFavsFilePath() {
-  const base = path.join(os.homedir(), "WFM-Cockpit");
-  if (!fs.existsSync(base)) {
-    fs.mkdirSync(base, { recursive: true });
-  }
-  return path.join(base, "favorites.json");
+// Pfade ermitteln
+function getProjectFavsPath() {
+  // Liegt im Projektordner – neben main.js
+  return path.join(__dirname, "favorites.json");
 }
 
-function readFavsFileSafe() {
-  const file = getFavsFilePath();
+function getUserDataFavsPath() {
+  // Electron-spezifischer, pro Benutzer beschreibbarer Speicherort
+  return path.join(app.getPath("userData"), "favorites.json");
+}
+
+// Helfer: Datei sicher lesen -> Objekt
+function readJsonFileSafe(file) {
   try {
-    if (!fs.existsSync(file)) return {};
+    if (!fs.existsSync(file)) return undefined;
     const raw = fs.readFileSync(file, "utf8");
     const obj = JSON.parse(raw);
     return (obj && typeof obj === "object") ? obj : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeFavsFileSafe(obj) {
-  const file = getFavsFilePath();
-  try {
-    fs.writeFileSync(file, JSON.stringify(obj, null, 2), "utf8");
-    return true;
   } catch (e) {
-    console.error("[favorites] write error:", e);
-    return false;
+    console.warn("[favorites] read error:", e.message);
+    return undefined;
   }
 }
 
-// Liefert Liste der Favoriten-IDs für den aktuellen Windows-User
+// Helfer: Pfad der *Lesedatei* auflösen
+// Priorität: Projektdatei > UserData-Datei
+function resolveFavsReadPath() {
+  const pProject = getProjectFavsPath();
+  const pUser = getUserDataFavsPath();
+  if (fs.existsSync(pProject)) return pProject;
+  if (fs.existsSync(pUser)) return pUser;
+  // keine Datei vorhanden -> Standard: Projektpfad
+  return pProject;
+}
+
+// Helfer: Schreiben – zuerst Projektordner versuchen, sonst UserData
+function writeFavsFileSafe(obj) {
+  const projectPath = getProjectFavsPath();
+  const userDataPath = getUserDataFavsPath();
+
+  // 1) Projektordner versuchen
+  try {
+    fs.writeFileSync(projectPath, JSON.stringify(obj, null, 2), "utf8");
+    return { ok: true, path: projectPath, fallback: false };
+  } catch (e) {
+    console.warn("[favorites] write to project failed:", e.message);
+  }
+
+  // 2) Fallback: UserData (Verzeichnis ggf. anlegen)
+  try {
+    const dir = path.dirname(userDataPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(userDataPath, JSON.stringify(obj, null, 2), "utf8");
+    return { ok: true, path: userDataPath, fallback: true };
+  } catch (e2) {
+    console.error("[favorites] write fallback failed:", e2);
+    return { ok: false, error: e2.message };
+  }
+}
+
+// Lesen: Projekt bevorzugt, sonst UserData
+function readFavsFile() {
+  const pathToRead = resolveFavsReadPath();
+  const obj = readJsonFileSafe(pathToRead);
+  return { obj: obj ?? {}, path: pathToRead };
+}
+
+// ===== IPC-Handler =====
+
+// Favoritenliste (IDs) für aktuellen Windows-User lesen
 ipcMain.handle("favs_get", async () => {
   const user = os.userInfo().username.toLowerCase();
-  const all = readFavsFileSafe();
-  const arr = Array.isArray(all[user]) ? all[user] : [];
+  const { obj } = readFavsFile();
+  const arr = Array.isArray(obj[user]) ? obj[user] : [];
   return arr.map(String);
 });
 
-// Prüft Favorit
-ipcMain.handle("is_fav", async (evt, id) => {
+// Ist ID Favorit?
+ipcMain.handle("is_fav", async (_evt, id) => {
   const user = os.userInfo().username.toLowerCase();
-  const all = readFavsFileSafe();
-  const arr = Array.isArray(all[user]) ? all[user] : [];
-  const set = new Set(arr.map(String));
-  return set.has(String(id));
+  const { obj } = readFavsFile();
+  const arr = Array.isArray(obj[user]) ? obj[user] : [];
+  return new Set(arr.map(String)).has(String(id));
 });
 
-// Toggle Favorit
-ipcMain.handle("fav_toggle", async (evt, id) => {
+// Toggle Favorit (schreibt mit Fallback)
+ipcMain.handle("fav_toggle", async (_evt, id) => {
   const user = os.userInfo().username.toLowerCase();
-  const all = readFavsFileSafe();
-  const arr = Array.isArray(all[user]) ? all[user] : [];
-  const set = new Set(arr.map(String));
-  const key = String(id);
+  const { obj } = readFavsFile();
 
+  const current = Array.isArray(obj[user]) ? obj[user].map(String) : [];
+  const set = new Set(current);
+  const key = String(id);
   let active;
+
   if (set.has(key)) {
     set.delete(key);
     active = false;
@@ -292,20 +329,40 @@ ipcMain.handle("fav_toggle", async (evt, id) => {
     active = true;
   }
 
-  all[user] = Array.from(set);
-  writeFavsFileSafe(all);
-
-  return { active, list: all[user] };
+  obj[user] = Array.from(set);
+  const res = writeFavsFileSafe(obj);
+  if (!res.ok) {
+    return { active, list: obj[user], error: res.error };
+  }
+  return { active, list: obj[user], path: res.path, fallback: res.fallback };
 });
 
-// Optional: Bulk setzen (falls du irgendwann brauchst)
-ipcMain.handle("favs_set", async (evt, ids) => {
+// Optional: komplette Liste setzen (Bulk)
+ipcMain.handle("favs_set", async (_evt, ids) => {
   const user = os.userInfo().username.toLowerCase();
-  const all = readFavsFileSafe();
-  const cleaned = Array.from(new Set((ids || []).map(String)));
-  all[user] = cleaned;
-  writeFavsFileSafe(all);
-  return cleaned;
+  const { obj } = readFavsFile();
+  obj[user] = Array.from(new Set((ids || []).map(String)));
+  const res = writeFavsFileSafe(obj);
+  if (!res.ok) return { ok: false, error: res.error };
+  return { ok: true, path: res.path, fallback: res.fallback, list: obj[user] };
+});
+
+// Optional: Infos zum Speicherort ausgeben (Debug)
+ipcMain.handle("favs_storage_info", async () => {
+  const readInfo = resolveFavsReadPath();
+  // Test-Schreibprobe (ohne Datei zu verändern): wir prüfen nur, *wo* wir schreiben würden
+  const tryProject = (() => {
+    try {
+      fs.accessSync(path.dirname(getProjectFavsPath()), fs.constants.W_OK);
+      return true;
+    } catch { return false; }
+  })();
+  return {
+    readFrom: readInfo,
+    preferredWrite: getProjectFavsPath(),
+    canWriteProjectDir: tryProject,
+    fallbackWrite: getUserDataFavsPath()
+  };
 });
 
 // *************************** //
