@@ -142,6 +142,13 @@ function fillToolDetailModal(data) {
   document.getElementById('td_pfad').textContent = data.toolpfad || '';
   document.getElementById('td_art').textContent = data.toolart || '';
 
+  // Placeholder-Felder
+  document.getElementById('td_version').textContent   = data.version   || '-';
+  document.getElementById('td_entwickler').textContent= data.entwickler|| '-';
+  document.getElementById('td_veroeff').textContent   = data.veroeff   || '-';
+  document.getElementById('td_update').textContent    = data.update    || '-';
+
+  // Buttons
   const btnOpen = document.getElementById('td_btn_open');
   const btnOpenDir = document.getElementById('td_btn_open_dir');
 
@@ -151,13 +158,11 @@ function fillToolDetailModal(data) {
   };
 
   btnOpenDir.onclick = async () => {
-    try {
-      await window.electron.dir_laden(data.id);
-    } catch (e) {
-      console.error(e);
-    }
+    try { await window.electron.dir_laden(data.id); } 
+    catch (e) { console.error(e); }
   };
 }
+
 
 function readToolDataFromCard(cardEl) {
   return {

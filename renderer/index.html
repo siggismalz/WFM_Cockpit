@@ -109,37 +109,76 @@
 </div>
 
 <!-- Detail-Modal: Tool-Infos anzeigen -->
+<!-- Modal: Tool-Details -->
 <div class="modal fade" id="toolDetailModal" tabindex="-1" aria-labelledby="toolDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
+      
       <div class="modal-header">
         <h5 class="modal-title" id="toolDetailModalLabel">Tool-Details</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
       </div>
+
       <div class="modal-body">
-        <div class="mb-2">
-          <div class="text-muted small">Name</div>
-          <div id="td_name" class="fw-semibold"></div>
+        <!-- Toolname -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted small">Name</label>
+          <div id="td_name" class="fs-6 fw-bold"></div>
         </div>
-        <div class="mb-2">
-          <div class="text-muted small">Beschreibung</div>
-          <div id="td_beschreibung"></div>
+
+        <!-- Beschreibung -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-muted small">Beschreibung</label>
+          <div id="td_beschreibung" class="border rounded p-2 bg-light" style="min-height:100px;"></div>
         </div>
-        <div class="mb-2">
-          <div class="text-muted small">Pfad</div>
-          <code id="td_pfad" class="d-block"></code>
+
+        <div class="row">
+          <!-- Pfad -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Pfad</label>
+            <code id="td_pfad" class="d-block text-truncate"></code>
+          </div>
+          <!-- Toolart -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Toolart</label>
+            <div id="td_art"></div>
+          </div>
         </div>
-        <div class="mb-2">
-          <div class="text-muted small">Toolart</div>
-          <div id="td_art"></div>
+
+        <hr />
+
+        <div class="row">
+          <!-- Version -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Version</label>
+            <div id="td_version" class="text-secondary">-</div>
+          </div>
+          <!-- Entwickler -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Entwickler</label>
+            <div id="td_entwickler" class="text-secondary">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <!-- Veröffentlichungsdatum -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Veröffentlichungsdatum</label>
+            <div id="td_veroeff" class="text-secondary">-</div>
+          </div>
+          <!-- Letztes Aktualisierungsdatum -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label fw-semibold text-muted small">Letztes Update</label>
+            <div id="td_update" class="text-secondary">-</div>
+          </div>
         </div>
       </div>
+
       <div class="modal-footer">
-        <!-- bewusst zwei getrennte Aktionen -->
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
         <button id="td_btn_open_dir" type="button" class="btn btn-outline-primary">
           <i class="bi bi-folder"></i> Original Pfad öffnen
         </button>
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
         <button id="td_btn_open" type="button" class="btn btn-primary">
           <i class="bi bi-box-arrow-up-right"></i> Tool öffnen
         </button>
@@ -147,6 +186,7 @@
     </div>
   </div>
 </div>
+
 
 
 
