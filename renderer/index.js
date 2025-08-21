@@ -27,37 +27,41 @@ document.addEventListener("DOMContentLoaded", () => {
     errorBox.textContent = "";
   });
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    form.classList.add("was-validated");
-    errorBox.classList.add("d-none");
-    if (!form.checkValidity()) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      form.classList.add("was-validated");
+      errorBox.classList.add("d-none");
+      if (!form.checkValidity()) return;
 
-    const daten = {
-      toolname: document.getElementById("toolname").value.trim(),
-      toolbeschreibung: document.getElementById("toolbeschreibung").value.trim(),
-      toolpfad: document.getElementById("toolpfad").value.trim(),
-      toolart: document.getElementById("toolart").value.trim()
-    };
+      const daten = {
+        toolname: document.getElementById("toolname").value.trim(),
+        toolbeschreibung: document.getElementById("toolbeschreibung").value.trim(),
+        toolpfad: document.getElementById("toolpfad").value.trim(),
+        toolart: document.getElementById("toolart").value.trim(),
+        version: document.getElementById("version").value.trim(),
+        entwickler: document.getElementById("entwickler").value.trim(),
+        beschreibung_lang: document.getElementById("beschreibung_lang").value.trim(),
+        veroeffentlicht_am: document.getElementById("veroeffentlicht_am").value || null
+      };
 
-    try {
-      if (window.electron?.tool_speichern) {
-        const res = await window.electron.tool_speichern(daten);
-        if (res?.ok) {
+      try {
+        if (window.electron?.tool_speichern) {
+          const res = await window.electron.tool_speichern(daten);
+          if (res?.ok) {
+            modal.hide();
+            tool_cards_laden();
+            toast('success', 'Tool erfolgreich hinzugefügt');
+            return;
+          }
+          throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
+        } else {
           modal.hide();
-          tool_cards_laden();
-          toast('success', 'Tool erfolgreich hinzugefügt');
-          return;
         }
-        throw new Error(res?.message || "Unbekannter Fehler beim Speichern");
-      } else {
-        modal.hide();
+      } catch (err) {
+        errorBox.textContent = err.message || String(err);
+        errorBox.classList.remove("d-none");
       }
-    } catch (err) {
-      errorBox.textContent = err.message || String(err);
-      errorBox.classList.remove("d-none");
-    }
-  });
+    });
 });
 
 // ******************************************************** //
@@ -202,15 +206,19 @@ const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
 
 function fillToolDetailModal(data) {
   document.getElementById('td_name').textContent = data.toolname || '';
-  document.getElementById('td_beschreibung').textContent = data.toolbeschreibung || '';
+  //document.getElementById('td_beschreibung').textContent = data.toolbeschreibung || '';
+  document.getElementById('td_beschreibung_lang').textContent = data.beschreibung_lang || '';
   document.getElementById('td_pfad').textContent = data.toolpfad || '';
   document.getElementById('td_art').textContent = data.toolart || '';
 
   // Placeholder-Felder
   document.getElementById('td_version').textContent    = data.version     || '-';
   document.getElementById('td_entwickler').textContent = data.entwickler  || '-';
-  document.getElementById('td_veroeff').textContent    = data.veroeff     || '-';
-  document.getElementById('td_update').textContent     = data.update      || '-';
+  // Veröffentlichungsdatum schön formatiert (handhabt String *und* Date-Objekt)
+let d = data.veroeff instanceof Date ? data.veroeff : (data.veroeff ? new Date(data.veroeff) : null);
+document.getElementById('td_veroeff').textContent = (d && !isNaN(d)) ? d.toLocaleDateString('de-DE') : (data.veroeff || '-');
+
+  //document.getElementById('td_update').textContent     = data.update      || '-';
 
   // Buttons
   const btnOpen = document.getElementById('td_btn_open');
@@ -246,13 +254,14 @@ function readToolDataFromCard(cardEl) {
     toolbeschreibung: cardEl.getAttribute('data-tool-desc') || cardEl.querySelector('.tool-desc')?.textContent?.trim(),
     toolpfad: cardEl.getAttribute('data-tool-path') || '',
     toolart: cardEl.getAttribute('data-tool-art') || '',
-    // Platzhalter – falls du später echte Werte mitlieferst:
     version: cardEl.getAttribute('data-tool-version') || '',
     entwickler: cardEl.getAttribute('data-tool-dev') || '',
     veroeff: cardEl.getAttribute('data-tool-published') || '',
-    update: cardEl.getAttribute('data-tool-updated') || ''
+    update: cardEl.getAttribute('data-tool-updated') || '',
+    beschreibung_lang: cardEl.getAttribute('data-tool-beschreibung-lang') || ''   // <<< NEU
   };
 }
+
 
 // ******************************************************** //
 // Cards laden & Klick-Verhalten                            //
@@ -276,34 +285,45 @@ async function tool_cards_laden(filter) {
 
   if (daten.length === 0) return;
 
-  daten.forEach((tool, index) => {
-    const cardHTML = `
-      <div class="card tool-card shadow-sm"
-           data-tool-id="${tool.id}"
-           data-tool-name="${(tool.toolname ?? '').replaceAll('"','&quot;')}"
-           data-tool-desc="${(tool.toolbeschreibung ?? '').replaceAll('"','&quot;')}"
-           data-tool-path="${(tool.toolpfad ?? '').replaceAll('"','&quot;')}"
-           data-tool-art="${(tool.toolart ?? '').replaceAll('"','&quot;')}"
-           tabindex="0">
-        <div class="tool-accent"></div>
-        <div class="card-body">
-          <h6 class="tool-title mb-1">${tool.toolname}</h6>
-          <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
-        </div>
-        <div class="card-footer bg-transparent d-flex gap-2 justify-content-end">
-          <button class="btn btn-light tool-fav-btn" 
-                  onclick="event.stopPropagation(); toggle_favorite_ui(this, '${tool.id}')"
-                  aria-label="Favorit" title="Zu Favoriten">
-            <i class="bi bi-star"></i>
-          </button>
-          <button class="btn btn-light tool-open-btn"
-                  onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
-                  aria-label="Öffnen" title="Tool öffnen">
-            <i class="bi bi-arrow-up-right"></i>
-          </button>
-        </div>
+daten.forEach((tool, index) => {
+  // >>> Feld-Mapping (beachtet Groß/Kleinschreibung aus der DB)
+  const version          = tool.Version           ?? tool.version           ?? '';
+  const entwickler       = tool.Entwickler        ?? tool.entwickler        ?? '';
+  const beschreibungLang = tool.Beschreibung_lang ?? tool.beschreibung_lang ?? '';
+  const veroeff          = tool.Veroeffentlicht_am?? tool.veroeffentlicht_am?? '';
+  //const updated          = tool.Letztes_Update    ?? tool.letztes_update    ?? tool.Update ?? tool.update ?? '';
+
+  const cardHTML = `
+    <div class="card tool-card shadow-sm"
+         data-tool-id="${tool.id}"
+         data-tool-name="${escapeAttr(tool.toolname)}"
+         data-tool-desc="${escapeAttr(tool.toolbeschreibung)}"
+         data-tool-path="${escapeAttr(tool.toolpfad)}"
+         data-tool-art="${escapeAttr(tool.toolart)}"
+         data-tool-version="${escapeAttr(version)}"
+         data-tool-dev="${escapeAttr(entwickler)}"
+         data-tool-published="${escapeAttr(veroeff)}"
+         data-tool-beschreibung-lang="${escapeAttr(beschreibungLang)}"
+         tabindex="0">
+      <div class="tool-accent"></div>
+      <div class="card-body">
+        <h6 class="tool-title mb-1">${tool.toolname}</h6>
+        <p class="tool-desc mb-0">${tool.toolbeschreibung}</p>
       </div>
-    `;
+      <div class="card-footer bg-transparent d-flex gap-2 justify-content-end">
+        <button class="btn btn-light tool-fav-btn" 
+                onclick="event.stopPropagation(); toggle_favorite_ui(this, '${tool.id}')"
+                aria-label="Favorit" title="Zu Favoriten">
+          <i class="bi bi-star"></i>
+        </button>
+        <button class="btn btn-light tool-open-btn"
+                onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
+                aria-label="Öffnen" title="Tool öffnen">
+          <i class="bi bi-arrow-up-right"></i>
+        </button>
+      </div>
+    </div>
+  `;
     setTimeout(async () => {
       const tpl = document.createElement("template");
       tpl.innerHTML = cardHTML.trim();
@@ -368,12 +388,16 @@ async function tools_dursuchen(filter) {
   daten.forEach((tool, index) => {
     const cardHTML = `
       <div class="card tool-card shadow-sm"
-           data-tool-id="${tool.id}"
-           data-tool-name="${(tool.toolname ?? '').replaceAll('"','&quot;')}"
-           data-tool-desc="${(tool.toolbeschreibung ?? '').replaceAll('"','&quot;')}"
-           data-tool-path="${(tool.toolpfad ?? '').replaceAll('"','&quot;')}"
-           data-tool-art="${(tool.toolart ?? '').replaceAll('"','&quot;')}"
-           tabindex="0">
+     data-tool-id="${tool.id}"
+     data-tool-name="${escape(tool.toolname)}"
+     data-tool-desc="${escape(tool.toolbeschreibung)}"
+     data-tool-path="${escape(tool.toolpfad)}"
+     data-tool-art="${escape(tool.toolart)}"
+     data-tool-version="${escape(tool.version)}"
+     data-tool-dev="${escape(tool.entwickler)}"
+     data-tool-published="${escape(tool.veroeffentlicht_am)}"
+     data-tool-updated="${escape(tool.update)}"
+     tabindex="0">
         <div class="tool-accent"></div>
         <div class="card-body">
           <h6 class="tool-title mb-1">${tool.toolname}</h6>
@@ -607,3 +631,12 @@ async function berechtigung_pruefen() {
     myModal.show();
   }
 }
+
+function escapeAttr(v) {
+  return String(v ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('"','&quot;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;');
+}
+

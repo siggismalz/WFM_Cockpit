@@ -137,17 +137,18 @@ ipcMain.handle("tool_oeffnen", async (event, id) => {
 // Neues Tool speichern
 ipcMain.handle("tool_speichern", async (_evt, t) => {
   try {
-    const { toolname, toolbeschreibung, toolpfad, toolart } = t || {};
+    const { toolname, toolbeschreibung, toolpfad, toolart,
+            version, entwickler, beschreibung_lang, veroeffentlicht_am } = t || {};
+
     if (![toolname, toolbeschreibung, toolpfad, toolart].every(v => typeof v === "string" && v.trim())) {
       throw new Error("Bitte alle Pflichtfelder ausfüllen.");
     }
-    if (toolname.length > 50 || toolbeschreibung.length > 50 || toolart.length > 50 || toolpfad.length > 250) {
-      throw new Error("Ein Feld überschreitet die maximale Länge.");
-    }
 
     await verbindung.query(
-      "INSERT INTO T_WFM_Cockpit (toolname, toolbeschreibung, toolpfad, toolart) VALUES (?,?,?,?)",
-      [toolname, toolbeschreibung, toolpfad, toolart]
+      `INSERT INTO T_WFM_Cockpit 
+        (toolname, toolbeschreibung, toolpfad, toolart, Version, Entwickler, Beschreibung_lang, Veroeffentlicht_am) 
+       VALUES (?,?,?,?,?,?,?,?)`,
+      [toolname, toolbeschreibung, toolpfad, toolart, version, entwickler, beschreibung_lang, veroeffentlicht_am]
     );
 
     return { ok: true };
@@ -155,6 +156,7 @@ ipcMain.handle("tool_speichern", async (_evt, t) => {
     return { ok: false, message: err.message || String(err) };
   }
 });
+
 
 // Arbeitsordner leeren
 ipcMain.handle("tools_ordner_leeren", async () => {
