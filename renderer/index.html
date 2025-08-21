@@ -108,6 +108,47 @@
   </button>
 </div>
 
+<!-- Detail-Modal: Tool-Infos anzeigen -->
+<div class="modal fade" id="toolDetailModal" tabindex="-1" aria-labelledby="toolDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="toolDetailModalLabel">Tool-Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <div class="text-muted small">Name</div>
+          <div id="td_name" class="fw-semibold"></div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted small">Beschreibung</div>
+          <div id="td_beschreibung"></div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted small">Pfad</div>
+          <code id="td_pfad" class="d-block"></code>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted small">Toolart</div>
+          <div id="td_art"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <!-- bewusst zwei getrennte Aktionen -->
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Schließen</button>
+        <button id="td_btn_open_dir" type="button" class="btn btn-outline-primary">
+          <i class="bi bi-folder"></i> Original Pfad öffnen
+        </button>
+        <button id="td_btn_open" type="button" class="btn btn-primary">
+          <i class="bi bi-box-arrow-up-right"></i> Tool öffnen
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
   <!-- Modal -->
   <div class="modal fade" id="toolModal" tabindex="-1" aria-labelledby="toolModalLabel" aria-hidden="true">

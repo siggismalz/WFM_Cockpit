@@ -1,4 +1,3 @@
-
 // ******************************************************** //
 // Der Code im Event-Listener wird beim Appstart ausgeführt //
 // ******************************************************** //
@@ -6,8 +5,8 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   // Tooltips der Buttons werden initialisiert
-  const tooltipliste = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-  [...tooltipliste].forEach(el => new bootstrap.Tooltip(el));
+  const tooltipListe = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+  [...tooltipListe].forEach(el => new bootstrap.Tooltip(el));
 
   // Username wird gesetzt
   username_holen();
@@ -15,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Tools werden geladen
   tool_cards_laden();
 
-  // Modal für's speichern/hinzufügen von neuen Tools 
+  // Modal für's speichern/hinzufügen von neuen Tools
   const form = document.getElementById("toolForm");
   const modalEl = document.getElementById("toolModal");
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -45,11 +44,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (window.electron?.tool_speichern) {
-        const res = await window.electron.tool_speichern(daten); 
+        const res = await window.electron.tool_speichern(daten);
         if (res?.ok) {
           modal.hide();
           tool_cards_laden();
-            const Toast = Swal.mixin({
+          const Toast = Swal.mixin({
             toast: true,
             position: "bottom-end",
             showConfirmButton: false,
@@ -79,63 +78,106 @@ document.addEventListener("DOMContentLoaded", () => {
 ///////////////////////////////////////////////////////////////////////
 
 // Filterung auf Tools im Bereich "GH_Dispo"
-document.getElementById("btn_gh_dispo_tools").addEventListener("click",() => {
+document.getElementById("btn_gh_dispo_tools").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("GH_Dispo");
 });
 
 // Filterung auf Tools im Bereich "Sonderprozesse"
-document.getElementById("btn_sonderprozesse").addEventListener("click",() => {
+document.getElementById("btn_sonderprozesse").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Sonderprozesse");
 });
 
 // Filterung auf Tools im Bereich "Organisation"
-document.getElementById("btn_organisation").addEventListener("click",() => {
+document.getElementById("btn_organisation").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Organisation");
 });
 
 // Filterung auf Tools im Bereich "Auswertungen"
-document.getElementById("btn_Auswertungen").addEventListener("click",() => {
+document.getElementById("btn_Auswertungen").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Auswertungen");
 });
 
 // Filterung auf Tools im Bereich "Mailing"
-document.getElementById("btn_mail").addEventListener("click",() => {
+document.getElementById("btn_mail").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   tool_cards_laden("Mailing");
 });
 
 // Der Button der die Volltextsuche ausführt
-document.getElementById("btn_suche").addEventListener("click",() => {
+document.getElementById("btn_suche").addEventListener("click", () => {
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
   const filter = document.getElementById("T_suche").value;
-  tools_dursuchen(filter)
+  tools_dursuchen(filter);
 });
 
-// Tool öffnen
+// Tool öffnen (direkt)
 function tool_offnen(id) {
   window.electron.tool_oeffnen(id);
-};
+}
 
 // Username abrufen
-async function username_holen(){
+async function username_holen() {
   let username = await window.electron.username();
   document.getElementById("username").innerText = username;
-};
+}
+
+/* ===================== Detail-Modal-Helfer ===================== */
+
+const detailModalEl = document.getElementById('toolDetailModal');
+const detailModal = detailModalEl ? new bootstrap.Modal(detailModalEl) : null;
+
+function fillToolDetailModal(data) {
+  document.getElementById('td_name').textContent = data.toolname || '';
+  document.getElementById('td_beschreibung').textContent = data.toolbeschreibung || '';
+  document.getElementById('td_pfad').textContent = data.toolpfad || '';
+  document.getElementById('td_art').textContent = data.toolart || '';
+
+  const btnOpen = document.getElementById('td_btn_open');
+  const btnOpenDir = document.getElementById('td_btn_open_dir');
+
+  btnOpen.onclick = () => {
+    detailModal?.hide();
+    tool_offnen(data.id);
+  };
+
+  btnOpenDir.onclick = async () => {
+    try {
+      await window.electron.dir_laden(data.id);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+}
+
+function readToolDataFromCard(cardEl) {
+  return {
+    id: cardEl.getAttribute('data-tool-id'),
+    toolname: cardEl.getAttribute('data-tool-name') || cardEl.querySelector('.tool-title')?.textContent?.trim(),
+    toolbeschreibung: cardEl.getAttribute('data-tool-desc') || cardEl.querySelector('.tool-desc')?.textContent?.trim(),
+    toolpfad: cardEl.getAttribute('data-tool-path') || '',
+    toolart: cardEl.getAttribute('data-tool-art') || ''
+  };
+}
+
+/* ===================== Cards laden & Klick-Verhalten ===================== */
 
 // Tools laden
-async function tool_cards_laden(filter){
+async function tool_cards_laden(filter) {
   let daten = await window.electron.tools_laden(filter);
-  if (!Array.isArray(daten) || daten.length === 0) return;
+  if (!Array.isArray(daten) || daten.length === 0) {
+    document.querySelector(".card-grid").innerHTML = "";
+    return;
+  }
 
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
@@ -144,8 +186,11 @@ async function tool_cards_laden(filter){
     const cardHTML = `
       <div class="card tool-card shadow-sm"
            data-tool-id="${tool.id}"
-           tabindex="0"
-           onclick="tool_offnen('${tool.id}')">
+           data-tool-name="${(tool.toolname ?? '').replaceAll('"','&quot;')}"
+           data-tool-desc="${(tool.toolbeschreibung ?? '').replaceAll('"','&quot;')}"
+           data-tool-path="${(tool.toolpfad ?? '').replaceAll('"','&quot;')}"
+           data-tool-art="${(tool.toolart ?? '').replaceAll('"','&quot;')}"
+           tabindex="0">
         <div class="tool-accent"></div>
         <div class="card-body">
           <h6 class="tool-title mb-1">${tool.toolname}</h6>
@@ -154,7 +199,7 @@ async function tool_cards_laden(filter){
 
         <div class="card-footer bg-transparent">
           <div class="tool-meta text-muted small"></div>
-          <button class="btn btn-light tool-open-btn" 
+          <button class="btn btn-light tool-open-btn"
                   onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
                   aria-label="Öffnen">
             <i class="bi bi-arrow-up-right"></i>
@@ -167,21 +212,60 @@ async function tool_cards_laden(filter){
       tpl.innerHTML = cardHTML.trim();
       const el = tpl.content.firstElementChild;
 
-      // Einmalige Entry-Animation aktivieren (falls du die Klasse nutzt)
+      // Entry-Animation
       el.classList.add("appear");
       grid.appendChild(el);
-
       el.addEventListener("animationend", () => {
         el.classList.remove("appear");
       }, { once: true });
+
+      // Linksklick auf die Card -> Detail-Modal
+      el.addEventListener('click', async () => {
+        const data = readToolDataFromCard(el);
+        // Optional: falls Pfad/Art fehlen, Details nachladen
+        if ((!data.toolpfad || !data.toolart) && window.electron?.tool_details) {
+          try {
+            const more = await window.electron.tool_details(data.id);
+            if (more) {
+              data.toolpfad = data.toolpfad || more.toolpfad || '';
+              data.toolart  = data.toolart  || more.toolart  || '';
+            }
+          } catch (e) { console.warn('tool_details fehlgeschlagen:', e); }
+        }
+        fillToolDetailModal(data);
+        detailModal?.show();
+      });
+
+      // Tastatur: Enter/Space -> Detail-Modal
+      el.addEventListener('keydown', async (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          const data = readToolDataFromCard(el);
+          if ((!data.toolpfad || !data.toolart) && window.electron?.tool_details) {
+            try {
+              const more = await window.electron.tool_details(data.id);
+              if (more) {
+                data.toolpfad = data.toolpfad || more.toolpfad || '';
+                data.toolart  = data.toolart  || more.toolart  || '';
+              }
+            } catch (e) { console.warn('tool_details fehlgeschlagen:', e); }
+          }
+          fillToolDetailModal(data);
+          detailModal?.show();
+        }
+      });
+
     }, index * 100);
   });
-};
+}
 
 // Funktione zum laden der Tools für die Volltextsuche
-async function tools_dursuchen(filter){
+async function tools_dursuchen(filter) {
   let daten = await window.electron.tools_dursuchen(filter);
-  if (!Array.isArray(daten) || daten.length === 0) return;
+  if (!Array.isArray(daten) || daten.length === 0) {
+    document.querySelector(".card-grid").innerHTML = "";
+    return;
+  }
 
   const grid = document.querySelector(".card-grid");
   grid.innerHTML = "";
@@ -190,8 +274,11 @@ async function tools_dursuchen(filter){
     const cardHTML = `
       <div class="card tool-card shadow-sm"
            data-tool-id="${tool.id}"
-           tabindex="0"
-           onclick="tool_offnen('${tool.id}')">
+           data-tool-name="${(tool.toolname ?? '').replaceAll('"','&quot;')}"
+           data-tool-desc="${(tool.toolbeschreibung ?? '').replaceAll('"','&quot;')}"
+           data-tool-path="${(tool.toolpfad ?? '').replaceAll('"','&quot;')}"
+           data-tool-art="${(tool.toolart ?? '').replaceAll('"','&quot;')}"
+           tabindex="0">
         <div class="tool-accent"></div>
         <div class="card-body">
           <h6 class="tool-title mb-1">${tool.toolname}</h6>
@@ -199,7 +286,7 @@ async function tools_dursuchen(filter){
         </div>
         <div class="card-footer bg-transparent">
           <div class="tool-meta text-muted small"></div>
-          <button class="btn btn-light tool-open-btn" 
+          <button class="btn btn-light tool-open-btn"
                   onclick="event.stopPropagation(); tool_offnen('${tool.id}')"
                   aria-label="Öffnen">
             <i class="bi bi-arrow-up-right"></i>
@@ -214,113 +301,144 @@ async function tools_dursuchen(filter){
       el.classList.add("appear");
       grid.appendChild(el);
       el.addEventListener("animationend", () => el.classList.remove("appear"), { once: true });
+
+      // Linksklick -> Detail-Modal
+      el.addEventListener('click', async () => {
+        const data = readToolDataFromCard(el);
+        if ((!data.toolpfad || !data.toolart) && window.electron?.tool_details) {
+          try {
+            const more = await window.electron.tool_details(data.id);
+            if (more) {
+              data.toolpfad = data.toolpfad || more.toolpfad || '';
+              data.toolart  = data.toolart  || more.toolart  || '';
+            }
+          } catch (e) { console.warn('tool_details fehlgeschlagen:', e); }
+        }
+        fillToolDetailModal(data);
+        detailModal?.show();
+      });
+
+      // Tastatur
+      el.addEventListener('keydown', async (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          const data = readToolDataFromCard(el);
+          if ((!data.toolpfad || !data.toolart) && window.electron?.tool_details) {
+            try {
+              const more = await window.electron.tool_details(data.id);
+              if (more) {
+                data.toolpfad = data.toolpfad || more.toolpfad || '';
+                data.toolart  = data.toolart  || more.toolart  || '';
+              }
+            } catch (e) { console.warn('tool_details fehlgeschlagen:', e); }
+          }
+          fillToolDetailModal(data);
+          detailModal?.show();
+        }
+      });
+
     }, index * 100);
   });
-};
-
+}
 
 // Funktion zum löschen der Tools im Userordner
-async function speicher_bereinigen(){
+async function speicher_bereinigen() {
   await window.electron.tools_ordner_leeren();
   const Toast = Swal.mixin({
-  toast: true,
-  position: "bottom-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.onmouseenter = Swal.stopTimer;
-    toast.onmouseleave = Swal.resumeTimer;
-  }
-});
+    toast: true,
+    position: "bottom-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
   Toast.fire({
     icon: "success",
     title: "Speicher erfolgreich bereinigt"
   });
-};
+}
 
-// Funktion zum warten LOL
+// Funktion zum warten
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Funktion zum schließen der App
-async function abmelden(){
+async function abmelden() {
   const Toast = Swal.mixin({
-  toast: true,
-  position: "bottom-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.onmouseenter = Swal.stopTimer;
-    toast.onmouseleave = Swal.resumeTimer;
-  }
-});
-Toast.fire({
-  icon: "info",
-  title: "Du wirst nun abgemeldet"
-});
-  
+    toast: true,
+    position: "bottom-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+  Toast.fire({
+    icon: "info",
+    title: "Du wirst nun abgemeldet"
+  });
+
   await wait(4000);
-
   window.electron.abmelden();
-};
-
+}
 
 // Funktion für den Test der SAP-Verbindung
-async function sap_verbindung_test(){
+async function sap_verbindung_test() {
   const ergebnis = window.electron.sap_verbindung_testen();
 
   if (ergebnis.success) {
-  const Toast = Swal.mixin({
-  toast: true,
-  position: "bottom-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.onmouseenter = Swal.stopTimer;
-    toast.onmouseleave = Swal.resumeTimer;
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
+    Toast.fire({
+      icon: "success",
+      title: "SAP-Verbindung erfolgreich hergestellt"
+    });
+  } else {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "bottom-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
+    Toast.fire({
+      icon: "error",
+      title: "Keine Verbindung zu SAP möglich"
+    });
   }
-});
-Toast.fire({
-  icon: "success",
-  title: "SAP-Verbindung erfolgreich hergestellt"
-});
-  
-
-} else {
-  const Toast = Swal.mixin({
-  toast: true,
-  position: "bottom-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.onmouseenter = Swal.stopTimer;
-    toast.onmouseleave = Swal.resumeTimer;
-  }
-});
-Toast.fire({
-  icon: "error",
-  title: "Keine Verbindung zu SAP möglich"
-});
-  }
-};
+}
 
 /* ===================== Kontextmenü-Controller ===================== */
-(function initContextMenuLoader(){
+(function initContextMenuLoader() {
   const init = () => {
     const menu = document.getElementById('toolContextMenu');
-    if (!menu) return; // Falls das Menü entfernt wurde
+    if (!menu) return;
 
     let currentToolId = null;
 
     // Rechtsklick auf Karten
     document.addEventListener('contextmenu', (ev) => {
       const card = ev.target.closest('.tool-card');
-      if (!card) return;               // außerhalb -> Browser-Default
+      if (!card) return;
       ev.preventDefault();
       ev.stopPropagation();
       currentToolId = card.getAttribute('data-tool-id');
@@ -357,7 +475,7 @@ Toast.fire({
       catch (e) { console.error(e); }
     });
 
-    function showMenuAt(clientX, clientY){
+    function showMenuAt(clientX, clientY) {
       // temporär sichtbar machen, um Größe zu ermitteln
       menu.style.visibility = 'hidden';
       menu.setAttribute('aria-hidden', 'false');
@@ -386,13 +504,13 @@ Toast.fire({
       menu.querySelector('.item')?.focus({ preventScroll: true });
     }
 
-    function hideMenu(){
+    function hideMenu() {
       menu.setAttribute('aria-hidden', 'true');
     }
 
     // Business-Logik für Aktionen (Backend hooks optional)
-    async function runAction(action, toolId){
-      switch(action){
+    async function runAction(action, toolId) {
+      switch (action) {
         case 'open':
           if (typeof tool_offnen === 'function') tool_offnen(toolId);
           break;
@@ -400,7 +518,6 @@ Toast.fire({
         case 'open_dir': {
           const res = await window.electron.dir_laden(toolId);
           if (res?.success) {
-            // ggf. kein Refresh nötig, wenn nur Ordner geöffnet wird – aber du wolltest es so:
             tool_cards_laden();
           } else {
             console.error("Ordner konnte nicht geöffnet werden:", res?.message);
@@ -414,12 +531,11 @@ Toast.fire({
             if (ok) tool_cards_laden();
           } else {
             console.log('[pin]', toolId);
-            // TODO: UI-Status toggeln
           }
           break;
 
         case 'delete':
-          try{
+          try {
             const ask = await Swal.fire({
               icon: 'warning',
               title: 'Dieses Tool löschen?',
@@ -434,15 +550,15 @@ Toast.fire({
               const ok = await window.electron.tool_loeschen(toolId);
               if (ok.success === true) {
                 await tool_cards_laden();
-                await Swal.fire({ toast:true, position:'bottom-end', timer:2000, showConfirmButton:false, icon:'success', title:'Gelöscht' });
+                await Swal.fire({ toast: true, position: 'bottom-end', timer: 2000, showConfirmButton: false, icon: 'success', title: 'Gelöscht' });
               } else {
-                await Swal.fire({ toast:true, position:'bottom-end', timer:2000, showConfirmButton:false, icon:'error', title:'Keine Berechtigung' });
+                await Swal.fire({ toast: true, position: 'bottom-end', timer: 2000, showConfirmButton: false, icon: 'error', title: 'Keine Berechtigung' });
               }
             } else {
               console.log('[delete]', toolId);
             }
-          } catch(err){
-            await Swal.fire({ icon:'error', title:'Fehler', text:String(err) });
+          } catch (err) {
+            await Swal.fire({ icon: 'error', title: 'Fehler', text: String(err) });
           }
           break;
       }
@@ -450,7 +566,7 @@ Toast.fire({
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once:true });
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
     init();
   }
@@ -459,7 +575,7 @@ Toast.fire({
 async function berechtigung_pruefen() {
   let user = await window.electron.username();
   user = user.toLowerCase();
-  const developer = ["leons","leon.stolz", "max.wandt", "roman.ensel", "jasmin.huber"];
+  const developer = ["leons", "leon.stolz", "max.wandt", "roman.ensel", "jasmin.huber"];
 
   if (!developer.includes(user)) {
     const Toast = Swal.mixin({
@@ -483,4 +599,3 @@ async function berechtigung_pruefen() {
     myModal.show();
   }
 }
-
