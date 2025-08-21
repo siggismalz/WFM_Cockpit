@@ -11,9 +11,19 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.7",
-    "electron": "^37.2.6",
     "odbc": "^2.4.9",
     "sweetalert2": "^11.22.4",
     "winax": "^3.6.2"
+  },
+  "devDependencies": {
+    "electron": "^37.3.1",
+    "electron-builder": "^26.0.12"
+  },
+    "build": {
+    "appId": "com.edeka.wfm_cockpit",
+    "productName": "WFM Cockpit",
+    "icon": "assets/icon.ico",
+    "win": {
+      "target": "nsis"
   }
-}
+} }
